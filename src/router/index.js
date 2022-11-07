@@ -8,6 +8,10 @@ const Login = () =>
     import ('@/pages/Login')
 const MyInfo = () =>
     import ('@/pages/MyInfo')
+const PatrolTasklist = () =>
+    import ('@/pages/patrolTask/PatrolTasklist')
+const WorkOrderDetails = () =>
+    import ('@/pages/patrolTask/WorkOrderDetails')
 Vue.use(Router)
 let baseRoute = [{
         path: '/',
@@ -23,6 +27,16 @@ let baseRoute = [{
         path: '/myInfo',
         name: 'myInfo',
         component: MyInfo
+    },
+    {
+        path: '/patrolTasklist',
+        name: 'patrolTasklist',
+        component: PatrolTasklist
+    },
+    {
+        path: '/workOrderDetails',
+        name: 'workOrderDetails',
+        component: WorkOrderDetails
     }
 ];
 let router = new Router({
