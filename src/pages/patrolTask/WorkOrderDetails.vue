@@ -33,7 +33,7 @@
             <div class="patrol-site">
                 <div>巡查地点</div>
                 <div class="patrol-site-list-box">
-                    <div class="patrol-site-list" v-for="(item,index) in patrolSiteList" :key="index">
+                    <div class="patrol-site-list" v-for="(item,index) in patrolSiteList" :key="index" @click="patrolSiteEvent">
                         {{ item.name }}
                     </div>
                 </div>
@@ -41,7 +41,7 @@
         </div>
     </div>
     <div class="task-operation-box">
-      <div class="task-no-complete">查看问题项</div>、
+      <div class="task-no-complete" @click="viewProblemItemsEvent">查看问题项</div>、
       <div class="task-complete">完成任务</div>
     </div>
   </div>
@@ -130,7 +130,17 @@ export default {
 
     // 顶部导航左边点击事件
     onClickLeft () {
-        this.$router.push({path: 'patrolTasklist'})
+      this.$router.push({path: '/patrolTasklist'})
+    },
+
+    // 巡查地点事件
+    patrolSiteEvent () {
+      this.$router.push({path: '/areaPatrolDetails'})
+    },
+
+    // 查看问题项事件
+    viewProblemItemsEvent () {
+      this.$router.push({path: '/QuestionList'})
     },
 
     // 扫码事件
@@ -144,9 +154,6 @@ export default {
 
     // 摄像头取消扫码后的回调
     scanQRcodeCallbackCanceled () {
-      this.$router.push({
-        path: "/cleaningTask"
-      })
     },
 
     // 摄像头扫码后的回调
@@ -192,13 +199,16 @@ export default {
         background: transparent !important;
         .van-nav-bar__left {
             .van-nav-bar__text {
-                color: #fff !important;
-                margin-left: 8px !important;
+              color: #fff !important;
+              margin-left: 8px !important;
+            };
+            .van-icon {
+              color: #fff !important;
             }
         }
         .van-nav-bar__title {
-            color: #fff !important;
-            font-size: 16px !important;
+          color: #fff !important;
+          font-size: 16px !important;
         }
     }
   };

@@ -12,6 +12,12 @@ const PatrolTasklist = () =>
     import ('@/pages/patrolTask/PatrolTasklist')
 const WorkOrderDetails = () =>
     import ('@/pages/patrolTask/WorkOrderDetails')
+const QuestionList = () =>
+    import ('@/pages/patrolTask/QuestionList')
+const ProblemRecord = () =>
+    import ('@/pages/patrolTask/ProblemRecord')
+const AreaPatrolDetails = () =>
+    import ('@/pages/patrolTask/AreaPatrolDetails')
 Vue.use(Router)
 let baseRoute = [{
         path: '/',
@@ -37,6 +43,21 @@ let baseRoute = [{
         path: '/workOrderDetails',
         name: 'workOrderDetails',
         component: WorkOrderDetails
+    },
+    {
+        path: '/questionList',
+        name: 'questionList',
+        component: QuestionList
+    },
+    {
+        path: '/problemRecord',
+        name: 'problemRecord',
+        component: ProblemRecord
+    },
+    {
+        path: '/areaPatrolDetails',
+        name: 'areaPatrolDetails',
+        component: AreaPatrolDetails
     }
 ];
 let router = new Router({
