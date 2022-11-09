@@ -57,7 +57,10 @@ let baseRoute = [{
     {
         path: '/areaPatrolDetails',
         name: 'areaPatrolDetails',
-        component: AreaPatrolDetails
+        component: AreaPatrolDetails,
+        meta: {
+            keepAlive: true
+        }
     }
 ];
 let router = new Router({

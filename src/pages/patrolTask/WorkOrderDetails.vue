@@ -42,7 +42,7 @@
     </div>
     <div class="task-operation-box">
       <div class="task-no-complete" @click="viewProblemItemsEvent">查看问题项</div>、
-      <div class="task-complete">完成任务</div>
+      <div class="task-complete" @click="completeTask">完成任务</div>
     </div>
   </div>
 </template>
@@ -122,7 +122,7 @@ export default {
   watch: {},
 
   computed: {
-    ...mapGetters(["userInfo"]),
+    ...mapGetters(["userInfo","patrolTaskListMessage"]),
   },
 
   methods: {
@@ -143,8 +143,14 @@ export default {
       this.$router.push({path: '/QuestionList'})
     },
 
+    // 完成任务事件
+    completeTask () {
+
+    },
+
     // 扫码事件
     scanQRCodeEvent () {
+      this.scanQRCode()
     },
 
     // 扫描二维码方法

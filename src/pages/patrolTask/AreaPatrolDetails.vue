@@ -49,7 +49,7 @@ import NavBar from "@/components/NavBar";
 import { mapGetters, mapMutations } from "vuex";
 import { IsPC } from "@/common/js/utils";
 export default {
-  name: "workOrderDetails",
+  name: "AreaPatrolDetails",
   components: {
     NavBar
   },
@@ -93,14 +93,37 @@ export default {
     }
   },
 
+  activated () {
+    // 控制设备物理返回按键
+    if (!IsPC()) {
+      pushHistory();
+      this.gotoURL(() => {
+        pushHistory();
+        this.$router.push({
+          path: "/workOrderDetails",
+        })
+      })
+    }
+  },
+
+   beforeRouteEnter(to, from, next) {
+    next(vm=>{
+      if (from.path == '/workOrderDetails') {
+        //此页面进入时重新请求数据
+        console.log('重新请求数据');
+      }
+	  });
+    next() 
+  },
+
   watch: {},
 
   computed: {
-    ...mapGetters(["userInfo"]),
+    ...mapGetters(["userInfo","enterProblemRecordMessage"]),
   },
 
   methods: {
-    ...mapMutations([]),
+    ...mapMutations(["changeEnterProblemRecordMessage"]),
 
     // 顶部导航左边点击事件
     onClickLeft () {
@@ -109,12 +132,17 @@ export default {
 
     // 通过事件
     passEvent (event,item,index) {
-        console.log(event,item,index)
+      console.log(event,item,index)
     },
 
     // 不通过事件
     noPassEvent (event,item,index) {
-        console.log(event,item,index)
+      console.log(event,item,index);
+      let temporaryInfo = this.enterProblemRecordMessage;
+      temporaryInfo['isAllowOperation'] = true;
+      temporaryInfo['enterProblemRecordPageSource'] = '/areaPatrolDetails';
+      this.changeEnterProblemRecordMessage(temporaryInfo);
+      this.$router.push({path: '/problemRecord'})
     }
   }
 };

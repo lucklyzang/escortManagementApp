@@ -47,7 +47,7 @@
                                 <span>任务集编号:</span>
                                 <span>{{ item.tasksetNumber }}</span>
                             </div>
-                            <div class="right-arrow-box" @click="taskDetailsEvent">
+                            <div class="right-arrow-box" @click="taskDetailsEvent(item)">
                                 <van-icon name="arrow" color="#1684FC" size="24" />
                             </div>
                         </div>
@@ -89,7 +89,7 @@
                                 <span>任务集编号:</span>
                                 <span>{{ item.tasksetNumber }}</span>
                             </div>
-                            <div class="right-arrow-box" @click="taskDetailsEvent">
+                            <div class="right-arrow-box" @click="taskDetailsEvent(item)">
                                 <van-icon name="arrow" color="#1684FC" size="24" />
                             </div>
                         </div>
@@ -182,7 +182,7 @@ export default {
   },
 
   methods: {
-    ...mapMutations([]),
+    ...mapMutations(["changePatrolTaskListMessage"]),
 
     // 任务状态转换
     taskStatusTransition (num) {
@@ -200,7 +200,8 @@ export default {
     },
 
     // 点击进入任务详情事件
-    taskDetailsEvent () {
+    taskDetailsEvent (item) {
+        this.changePatrolTaskListMessage(item);
         this.$router.push('/workOrderDetails')
     }
   }

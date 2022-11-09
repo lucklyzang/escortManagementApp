@@ -174,11 +174,11 @@ export default {
   watch: {},
 
   computed: {
-    ...mapGetters(["userInfo"])
+    ...mapGetters(["userInfo","enterProblemRecordMessage"])
   },
 
   methods: {
-    ...mapMutations([]),
+    ...mapMutations(["changeEnterProblemRecordMessage"]),
 
     // 任务状态转换
     taskStatusTransition (num) {
@@ -197,6 +197,10 @@ export default {
 
     // 点击进入问题记录页
     problemRecordEvent () {
+        let temporaryInfo = this.enterProblemRecordMessage;
+        temporaryInfo['isAllowOperation'] = false;
+        temporaryInfo['enterProblemRecordPageSource'] = '/questionList';
+        this.changeEnterProblemRecordMessage(temporaryInfo);
         this.$router.push('/problemRecord')
     }
   }

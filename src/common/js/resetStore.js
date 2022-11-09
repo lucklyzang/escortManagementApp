@@ -12,7 +12,10 @@ export function getDefaultLoginState() {
         chooseProject: [] //选择的医院 
     }
 };
-// 环境管理信息store的初始值
+// 陪护管理信息store的初始值
 export function getDefaultEscortManagementState() {
-    return {}
+    return {
+        enterProblemRecordMessage: {}, //进入问题记录页时携带的相关信息
+        patrolTaskListMessage: {}, //巡查任务列表信息
+    }
 };

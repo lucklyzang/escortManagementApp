@@ -39,7 +39,7 @@
                     {{ echoNote }}
                 </div>
             </div>
-            <div class="location result-picture">
+            <div class="location result-picture" v-show="enterProblemRecordMessage.isAllowOperation">
                 <div>
                     问题拍照
                 </div>
@@ -58,7 +58,7 @@
                 </div>
                 </div>
             </div>
-            <div class="location problem-description">
+            <div class="location problem-description" v-show="enterProblemRecordMessage.isAllowOperation">
                 <div>问题描述</div>
                 <div>
                     <van-field
@@ -72,7 +72,7 @@
                     />
                 </div>
             </div>
-            <div class="location remark">
+            <div class="location remark" v-show="enterProblemRecordMessage.isAllowOperation">
                 <div>备注</div>
                 <div class="remark-content">
                     <van-field
@@ -151,7 +151,7 @@ export default {
       this.gotoURL(() => {
         pushHistory();
         this.$router.push({
-          path: "/questionList",
+          path: `${this.enterProblemRecordMessage['enterProblemRecordPageSource']}`
         })
       })
     }
@@ -160,7 +160,7 @@ export default {
   watch: {},
 
   computed: {
-    ...mapGetters(["userInfo"]),
+    ...mapGetters(["userInfo","enterProblemRecordMessage"])
   },
 
   methods: {
@@ -168,34 +168,13 @@ export default {
 
     // 顶部导航左边点击事件
     onClickLeft () {
-      this.$router.push({path: '/questionList'})
-    },
-
-    // 任务状态转换
-    stausTransfer (num) {
-      switch(num) {
-        case 1:
-            return '未开始'
-            break;
-        case 2:
-            return '进行中'
-            break;
-        case 3:
-            return '复核中'
-            break;
-        case 4:
-            return '已完成'
-            break;
-        case 5:
-            return '已复核'
-            break
-      } 
+      this.$router.push({path: `${this.enterProblemRecordMessage['enterProblemRecordPageSource']}`})
     },
 
     // 图片放大事件
     enlareEvent (item) {
-        this.currentImgUrl = item;
-        this.imgBoxShow = true
+      this.currentImgUrl = item;
+      this.imgBoxShow = true
     },
 
     // 任务完成事件
