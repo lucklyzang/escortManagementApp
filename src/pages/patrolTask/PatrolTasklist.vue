@@ -10,7 +10,7 @@
 			<img :src="statusBackgroundPng" />
 		</div>
         <div class="content-box">
-            <van-tabs v-model="activeName" color="#1684FC" title-inactive-color="#BEC7D1" title-active-color="#1684FC">
+            <van-tabs v-model="activeName" color="#1684FC" title-inactive-color="#BEC7D1" title-active-color="#1684FC" @change="vanTabsChangeEvent">
                 <van-tab title="待办任务" name="backlogTask">
                     <div class="backlog-task-list" v-for="(item,index) in taskList" :key="index">
                         <div class="backlog-task-top">
@@ -197,6 +197,11 @@ export default {
                 return '已完成'
                 break;
         }
+    },
+
+    // tab切换值变化事件
+    vanTabsChangeEvent (value) {
+        console.log(value)
     },
 
     // 点击进入任务详情事件

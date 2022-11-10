@@ -10,8 +10,8 @@
 			<img :src="statusBackgroundPng" />
 		</div>
         <div class="content-box">
-            <van-tabs v-model="activeName" color="#1684FC" title-inactive-color="#BEC7D1" title-active-color="#1684FC">
-                <van-tab title="本次任务" name="backlogTask">
+            <van-tabs v-model="activeName" color="#1684FC" title-inactive-color="#BEC7D1" title-active-color="#1684FC" @change="vanTabsChangeEvent">
+                <van-tab title="本次任务" name="currentTask">
                     <div class="backlog-task-list" v-for="(item,index) in taskList" :key="index">
                         <div class="backlog-task-top">
                             <div class="backlog-task-top-left">
@@ -53,7 +53,7 @@
                         </div>
                     </div>
                 </van-tab>
-                <van-tab title="全部任务" name="completetedTask">
+                <van-tab title="全部任务" name="allTask">
                     <div class="backlog-task-list" v-for="(item,index) in taskList" :key="index">
                         <div class="backlog-task-top">
                             <div class="backlog-task-top-left">
@@ -113,7 +113,7 @@ export default {
     return {
       loadingShow: false,
       overlayShow: false,
-      activeName: 'backlogTask',
+      activeName: 'currentTask',
       statusBackgroundPng: require("@/common/images/home/status-background.png"),
       taskList: [
         {
@@ -194,6 +194,12 @@ export default {
                 break;
         }
     },
+
+    // tab切换值变化事件
+    vanTabsChangeEvent (value) {
+        console.log(value)
+    },
+
 
     // 点击进入问题记录页
     problemRecordEvent () {
