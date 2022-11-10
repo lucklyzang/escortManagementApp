@@ -145,7 +145,7 @@ export default {
 
     // 完成任务事件
     completeTask () {
-
+      this.$router.push({path:'/workOrderElectronicSignature'})
     },
 
     // 扫码事件

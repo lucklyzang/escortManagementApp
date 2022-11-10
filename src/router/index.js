@@ -18,6 +18,8 @@ const ProblemRecord = () =>
     import ('@/pages/patrolTask/ProblemRecord')
 const AreaPatrolDetails = () =>
     import ('@/pages/patrolTask/AreaPatrolDetails')
+const WorkOrderElectronicSignature = () =>
+    import ('@/pages/patrolTask/WorkOrderElectronicSignature')
 Vue.use(Router)
 let baseRoute = [{
         path: '/',
@@ -61,6 +63,11 @@ let baseRoute = [{
         meta: {
             keepAlive: true
         }
+    },
+    {
+        path: '/workOrderElectronicSignature',
+        name: 'workOrderElectronicSignature',
+        component: WorkOrderElectronicSignature
     }
 ];
 let router = new Router({

@@ -10,7 +10,16 @@ export default {
 
         patrolTaskListMessage: (state) => {
             return state.patrolTaskListMessage
-        }
+        },
+
+        currentElectronicSignature: (state) => {
+            return state.currentElectronicSignature
+        },
+
+        originalSignature: (state) => {
+            return state.originalSignature
+        },
+
     },
 
     mutations: {
@@ -26,6 +35,16 @@ export default {
             if (playLoad && playLoad != 'null') {
                 state.patrolTaskListMessage = playLoad
             }
+        },
+
+        // 保存工单完成时的电子签名信息
+        changeCurrentElectronicSignature(state, payLoad) {
+            state.currentElectronicSignature = payLoad.DtMsg
+        },
+
+        // 保存工单完成时原始电子签名信息
+        changeOriginalSignature(state, payLoad) {
+            state.originalSignature = payLoad
         },
 
         //重置陪护管理状态
