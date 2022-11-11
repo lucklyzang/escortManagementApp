@@ -106,7 +106,7 @@ export default {
     }
   },
 
-   beforeRouteEnter(to, from, next) {
+  beforeRouteEnter(to, from, next) {
     next(vm=>{
       if (from.path == '/workOrderDetails') {
         //此页面进入时重新请求数据
