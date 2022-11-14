@@ -12,88 +12,92 @@
         <div class="content-box">
             <van-tabs v-model="activeName" color="#1684FC" title-inactive-color="#BEC7D1" title-active-color="#1684FC" @change="vanTabsChangeEvent">
                 <van-tab title="待办任务" name="backlogTask">
-                    <div class="backlog-task-list" v-for="(item,index) in taskList" :key="index">
-                        <div class="backlog-task-top">
-                            <div class="backlog-task-top-left">
-                                <span>任务编号</span>
-                                <span>{{ item.taskNumber }}</span>
+                    <div class="backlog-task-list-box" ref="scrollBacklogTask">
+                        <div class="backlog-task-list" v-for="(item,index) in taskList" :key="index">
+                            <div class="backlog-task-top">
+                                <div class="backlog-task-top-left">
+                                    <span>任务编号</span>
+                                    <span>{{ item.taskNumber }}</span>
+                                </div>
+                                <div class="backlog-task-top-right">
+                                    <span :class="{'spanNoStartStyle': item.status == 1,'spanCompletedStyle': item.status == 3}">{{ taskStatusTransition(item.status) }}</span>
+                                </div>
                             </div>
-                            <div class="backlog-task-top-right">
-                                <span :class="{'spanNoStartStyle': item.status == 1,'spanCompletedStyle': item.status == 3}">{{ taskStatusTransition(item.status) }}</span>
+                            <div class="backlog-task-content">
+                                <div class="taskset-name">
+                                    <span>任务集名称:</span>
+                                    <span>{{ item.tasksetName }}</span>
+                                </div>
+                                <div class="taskset-create-time-type">
+                                    <span>任务集生成时间类型:</span>
+                                    <span>{{ item.tasksetCreateTimeType }}</span>
+                                </div>
+                                <div class="task-create-time">
+                                    <span>任务生成时间:</span>
+                                    <span>{{ item.taskCreateTime }}</span>
+                                </div>
+                                <div class="complete-patrol-area">
+                                    <span>已完成巡查区域:</span>
+                                    <span>{{ item.completePatrolArea }}</span>
+                                </div>
+                                <div class="unfinished-patrol-area">
+                                    <span>未完成巡查区域:</span>
+                                    <span>{{ item.unfinishedPatrolArea }}</span>
+                                </div>
+                                <div class="taskset-number">
+                                    <span>任务集编号:</span>
+                                    <span>{{ item.tasksetNumber }}</span>
+                                </div>
+                                <div class="right-arrow-box" @click="taskDetailsEvent(item)">
+                                    <van-icon name="arrow" color="#1684FC" size="24" />
+                                </div>
                             </div>
                         </div>
-                        <div class="backlog-task-content">
-                            <div class="taskset-name">
-                                <span>任务集名称:</span>
-                                <span>{{ item.tasksetName }}</span>
-                            </div>
-                            <div class="taskset-create-time-type">
-                                <span>任务集生成时间类型:</span>
-                                <span>{{ item.tasksetCreateTimeType }}</span>
-                            </div>
-                            <div class="task-create-time">
-                                <span>任务生成时间:</span>
-                                <span>{{ item.taskCreateTime }}</span>
-                            </div>
-                            <div class="complete-patrol-area">
-                                <span>已完成巡查区域:</span>
-                                <span>{{ item.completePatrolArea }}</span>
-                            </div>
-                            <div class="unfinished-patrol-area">
-                                <span>未完成巡查区域:</span>
-                                <span>{{ item.unfinishedPatrolArea }}</span>
-                            </div>
-                            <div class="taskset-number">
-                                <span>任务集编号:</span>
-                                <span>{{ item.tasksetNumber }}</span>
-                            </div>
-                            <div class="right-arrow-box" @click="taskDetailsEvent(item)">
-                                <van-icon name="arrow" color="#1684FC" size="24" />
-                            </div>
-                        </div>
-                    </div>
+                    </div>    
                 </van-tab>
                 <van-tab title="已完成" name="completetedTask">
-                    <div class="backlog-task-list" v-for="(item,index) in taskList" :key="index">
-                        <div class="backlog-task-top">
-                            <div class="backlog-task-top-left">
-                                <span>任务编号</span>
-                                <span>{{ item.taskNumber }}</span>
+                    <div class="backlog-task-list-box" ref="scrollCompletetedTask">
+                        <div class="backlog-task-list" v-for="(item,index) in taskList" :key="index">
+                            <div class="backlog-task-top">
+                                <div class="backlog-task-top-left">
+                                    <span>任务编号</span>
+                                    <span>{{ item.taskNumber }}</span>
+                                </div>
+                                <div class="backlog-task-top-right">
+                                    <span :class="{'spanNoStartStyle': item.status == 1,'spanCompletedStyle': item.status == 3}">{{ taskStatusTransition(item.status) }}</span>
+                                </div>
                             </div>
-                            <div class="backlog-task-top-right">
-                                <span :class="{'spanNoStartStyle': item.status == 1,'spanCompletedStyle': item.status == 3}">{{ taskStatusTransition(item.status) }}</span>
+                            <div class="backlog-task-content">
+                                <div class="taskset-name">
+                                    <span>任务集名称:</span>
+                                    <span>{{ item.tasksetName }}</span>
+                                </div>
+                                <div class="taskset-create-time-type">
+                                    <span>任务集生成时间类型:</span>
+                                    <span>{{ item.tasksetCreateTimeType }}</span>
+                                </div>
+                                <div class="task-create-time">
+                                    <span>任务生成时间:</span>
+                                    <span>{{ item.taskCreateTime }}</span>
+                                </div>
+                                <div class="complete-patrol-area">
+                                    <span>已完成巡查区域:</span>
+                                    <span>{{ item.completePatrolArea }}</span>
+                                </div>
+                                <div class="unfinished-patrol-area">
+                                    <span>未完成巡查区域:</span>
+                                    <span>{{ item.unfinishedPatrolArea }}</span>
+                                </div>
+                                <div class="taskset-number">
+                                    <span>任务集编号:</span>
+                                    <span>{{ item.tasksetNumber }}</span>
+                                </div>
+                                <div class="right-arrow-box" @click="taskDetailsEvent(item)">
+                                    <van-icon name="arrow" color="#1684FC" size="24" />
+                                </div>
                             </div>
                         </div>
-                        <div class="backlog-task-content">
-                            <div class="taskset-name">
-                                <span>任务集名称:</span>
-                                <span>{{ item.tasksetName }}</span>
-                            </div>
-                            <div class="taskset-create-time-type">
-                                <span>任务集生成时间类型:</span>
-                                <span>{{ item.tasksetCreateTimeType }}</span>
-                            </div>
-                            <div class="task-create-time">
-                                <span>任务生成时间:</span>
-                                <span>{{ item.taskCreateTime }}</span>
-                            </div>
-                            <div class="complete-patrol-area">
-                                <span>已完成巡查区域:</span>
-                                <span>{{ item.completePatrolArea }}</span>
-                            </div>
-                            <div class="unfinished-patrol-area">
-                                <span>未完成巡查区域:</span>
-                                <span>{{ item.unfinishedPatrolArea }}</span>
-                            </div>
-                            <div class="taskset-number">
-                                <span>任务集编号:</span>
-                                <span>{{ item.tasksetNumber }}</span>
-                            </div>
-                            <div class="right-arrow-box" @click="taskDetailsEvent(item)">
-                                <van-icon name="arrow" color="#1684FC" size="24" />
-                            </div>
-                        </div>
-                    </div>
+                    </div>    
                 </van-tab>
             </van-tabs>
         </div>
@@ -172,7 +176,10 @@ export default {
           path: "/home",
         })
       })
-    }
+    };
+    this.$nextTick(()=> {
+        this.initScrollChange()
+    })
   },
 
   watch: {},
@@ -197,6 +204,18 @@ export default {
                 return '已完成'
                 break;
         }
+    },
+
+    // 元素滚动事件
+    initScrollChange () {
+        let boxScroll = this.$refs['scrollBacklogTask'];
+        let boxScrollScrollHeight = boxScroll.scrollHeight;
+        let boxScrollOffsetHeight = boxScroll.offsetHeight;
+        boxScroll.addEventListener('scroll',(e)=> {
+            if (Math.ceil(e.srcElement.scrollTop) + boxScrollOffsetHeight >= boxScrollScrollHeight) {
+                console.log(e.srcElement.scrollTop, boxScrollOffsetHeight,boxScrollScrollHeight)
+            }
+        },true)
     },
 
     // tab切换值变化事件
@@ -287,83 +306,90 @@ export default {
                 padding: 8px 4px 0px 4px;
                 box-sizing: border-box;
                 background: #f7f7f7;
-                overflow: auto;
-                .backlog-task-list {
-                    padding: 0 8px 4px 8px;
-                    box-sizing: border-box;
-                    border-radius: 6px;
-                    background: #fff;
-                    box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.23);
-                    margin-bottom: 10px;
-                    .backlog-task-top {
-                        height: 40px;
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        font-size: 14px;
-                        color: #1684FC;
-                        .bottom-border-1px(#BEC7D1);
-                        .backlog-task-top-left {
-                            flex: 1;
-                            .no-wrap()
-                        };
-                        .backlog-task-top-right {
-                            width: 70px;
-                            text-align: center;
-                            span {
-                                display: inline-block;
-                                width: 62px;
-                                height: 22px;
-                                text-align: center;
-                                line-height: 22px;
-                                background: #289E8E;
-                                color: #fff;
-                                border-radius: 6px;
-                            };
-                            .spanNoStartStyle {
-                                background: #174E97;
-                            };
-                            .spanCompletedStyle {
-                                background: #101010;
-                            }
-                        }
-                    };
-                    .backlog-task-content {
-                        position: relative;
-                        .right-arrow-box {
-                            position: absolute;
-                            display: flex;
-                            justify-content: center;
-                            align-items: center;
-                            right: 8px;
-                            top: 50%;
-                            transform: translateY(-50%)
-                        };
-                        >div {
-                          line-height: 28px;
-                          word-break: break-all;
-                          font-size: 14px;
-                          color: #101010  
-                        };
-                        .taskset-name {
-                            color: #1684FC
-                        };
-                        .complete-patrol-area {
-                            >span {
-                                &:nth-child(2) {
-                                    color: #1684FC
+                overflow: scroll;
+                .van-tab__pane {
+                    height: 100%;
+                    .backlog-task-list-box {
+                        overflow: scroll;
+                        height: 100%;
+                        .backlog-task-list {
+                            padding: 0 8px 4px 8px;
+                            box-sizing: border-box;
+                            border-radius: 6px;
+                            background: #fff;
+                            box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.23);
+                            margin-bottom: 10px;
+                            .backlog-task-top {
+                                height: 40px;
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                font-size: 14px;
+                                color: #1684FC;
+                                .bottom-border-1px(#BEC7D1);
+                                .backlog-task-top-left {
+                                    flex: 1;
+                                    .no-wrap()
+                                };
+                                .backlog-task-top-right {
+                                    width: 70px;
+                                    text-align: center;
+                                    span {
+                                        display: inline-block;
+                                        width: 62px;
+                                        height: 22px;
+                                        text-align: center;
+                                        line-height: 22px;
+                                        background: #289E8E;
+                                        color: #fff;
+                                        border-radius: 6px;
+                                    };
+                                    .spanNoStartStyle {
+                                        background: #174E97;
+                                    };
+                                    .spanCompletedStyle {
+                                        background: #101010;
+                                    }
                                 }
-                            }
-                        };
-                        .unfinished-patrol-area {
-                             >span {
-                                &:nth-child(2) {
+                            };
+                            .backlog-task-content {
+                                position: relative;
+                                .right-arrow-box {
+                                    position: absolute;
+                                    display: flex;
+                                    justify-content: center;
+                                    align-items: center;
+                                    right: 8px;
+                                    top: 50%;
+                                    transform: translateY(-50%)
+                                };
+                                >div {
+                                line-height: 28px;
+                                word-break: break-all;
+                                font-size: 14px;
+                                color: #101010  
+                                };
+                                .taskset-name {
                                     color: #1684FC
+                                };
+                                .complete-patrol-area {
+                                    >span {
+                                        &:nth-child(2) {
+                                            color: #1684FC
+                                        }
+                                    }
+                                };
+                                .unfinished-patrol-area {
+                                    >span {
+                                        &:nth-child(2) {
+                                            color: #1684FC
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
-                }
+                }        
             }
         }
     }
