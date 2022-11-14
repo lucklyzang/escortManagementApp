@@ -53,6 +53,7 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="no-more-data">没有更多数据了</div>
                     </div>    
                 </van-tab>
                 <van-tab title="已完成" name="completetedTask">
@@ -97,6 +98,7 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="no-more-data">没有更多数据了</div>
                     </div>    
                 </van-tab>
             </van-tabs>
@@ -208,19 +210,33 @@ export default {
 
     // 元素滚动事件
     initScrollChange () {
-        let boxScroll = this.$refs['scrollBacklogTask'];
-        let boxScrollScrollHeight = boxScroll.scrollHeight;
-        let boxScrollOffsetHeight = boxScroll.offsetHeight;
-        boxScroll.addEventListener('scroll',(e)=> {
-            if (Math.ceil(e.srcElement.scrollTop) + boxScrollOffsetHeight >= boxScrollScrollHeight) {
-                console.log(e.srcElement.scrollTop, boxScrollOffsetHeight,boxScrollScrollHeight)
-            }
-        },true)
+        // 待办任务列表下拉
+        if (this.activeName == 'backlogTask') {
+            let boxBackScroll = this.$refs['scrollBacklogTask'];
+            boxBackScroll.addEventListener('scroll',(e)=> {
+                if (Math.ceil(e.srcElement.scrollTop) + e.srcElement.offsetHeight >= e.srcElement.scrollHeight) {
+                    console.log('待办滚动了',e.srcElement.scrollTop, e.srcElement.offsetHeight, e.srcElement.scrollHeight)
+                }
+            },true)
+        }
+
+        // 完成任务列表下拉
+        if (this.activeName == 'completetedTask') {
+            let boxCompleteteScroll = this.$refs['scrollCompletetedTask'];
+            boxCompleteteScroll.addEventListener('scroll',(e)=> {
+                if (Math.ceil(e.srcElement.scrollTop) + e.srcElement.offsetHeight >= e.srcElement.scrollHeight) {
+                    console.log('完成滚动了',e.srcElement.scrollTop, e.srcElement.offsetHeight, e.srcElement.scrollHeight)
+                }
+            },true)
+        }    
     },
 
     // tab切换值变化事件
     vanTabsChangeEvent (value) {
-        console.log(value)
+        console.log(value);
+        this.$nextTick(()=> {
+            this.initScrollChange()
+        })
     },
 
     // 点击进入任务详情事件
@@ -387,6 +403,13 @@ export default {
                                     }
                                 }
                             }
+                        };
+                        .no-more-data {
+                            font-size: 12px;
+                            color: #BEC7D1;
+                            width: 100%;
+                            text-align: center;
+                            line-height: 30px
                         }
                     }
                 }        
