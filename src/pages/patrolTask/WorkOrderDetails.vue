@@ -41,8 +41,7 @@
         </div>
     </div>
     <div class="task-operation-box">
-      <div class="task-no-complete" @click="viewProblemItemsEvent">查看问题项</div>、
-      <div class="task-complete" @click="completeTask">完成任务</div>
+      <div class="task-no-complete" @click="viewProblemItemsEvent">查看问题项</div>
     </div>
   </div>
 </template>
@@ -141,11 +140,6 @@ export default {
     // 查看问题项事件
     viewProblemItemsEvent () {
       this.$router.push({path: '/QuestionList'})
-    },
-
-    // 完成任务事件
-    completeTask () {
-      this.$router.push({path:'/workOrderElectronicSignature'})
     },
 
     // 扫码事件
@@ -313,11 +307,11 @@ export default {
   .task-operation-box {
     height: 80px;
     display: flex;
-    width: 90%;
+    width: 100%;
     z-index: 100;
-    margin: 0 auto;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
+    background: #fff;
     >div {
       width: 48%;
       height: 48px;
@@ -326,15 +320,9 @@ export default {
       background: #fff;
       text-align: center;
       border-radius: 30px;
-      font-weight: bold;
       &:first-child {
-        color: blue;
-        border: 1px solid blue
-      };
-       &:last-child {
-        color: #fff;
-        background: linear-gradient(to right, #6cd2f8, #2390fe);
-        box-shadow: 0px 2px 6px 0 rgba(36, 149, 213, 1);
+        color: #1684FC;
+        border: 1px solid #1684FC
       }
     }
   }

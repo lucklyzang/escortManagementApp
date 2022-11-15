@@ -88,6 +88,9 @@
             </div>
         </div>
     </div>
+    <div class="task-operation-box">
+      <div class="task-no-complete">提交</div>
+    </div>
     <transition name="van-slide-up">
       <div class="choose-photo-box" v-show="photoBox">
         <div class="choose-photo">
@@ -747,6 +750,29 @@ export default {
             }  
         }
     }    
+  };
+  .task-operation-box {
+    height: 80px;
+    display: flex;
+    width: 100%;
+    z-index: 100;
+    margin: 0 auto;
+    align-items: center;
+    justify-content: center;
+    background: #F7F7F7;
+    >div {
+      width: 80%;
+      height: 48px;
+      font-size: 18px;
+      line-height: 48px;
+      background: #fff;
+      text-align: center;
+      border-radius: 30px;
+      font-weight: bold;
+      color: #fff;
+      background: linear-gradient(to right, #6cd2f8, #2390fe);
+      box-shadow: 0px 2px 6px 0 rgba(36, 149, 213, 1);
+    }
   }
 }
 </style>

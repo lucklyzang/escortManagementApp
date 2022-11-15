@@ -274,11 +274,12 @@ export default {
    .task-operation-box {
         height: 80px;
         display: flex;
-        width: 90%;
+        width: 100%;
         z-index: 100;
         margin: 0 auto;
         align-items: center;
         justify-content: center;
+        background: #F7F7F7;
         >div {
             width: 80%;
             height: 48px;
