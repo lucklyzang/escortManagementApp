@@ -89,7 +89,7 @@
         </div>
     </div>
     <div class="task-operation-box">
-      <div class="task-no-complete">提交</div>
+      <div class="task-no-complete">确 认</div>
     </div>
     <transition name="van-slide-up">
       <div class="choose-photo-box" v-show="photoBox">
@@ -761,7 +761,7 @@ export default {
     justify-content: center;
     background: #F7F7F7;
     >div {
-      width: 80%;
+      width: 70%;
       height: 48px;
       font-size: 18px;
       line-height: 48px;

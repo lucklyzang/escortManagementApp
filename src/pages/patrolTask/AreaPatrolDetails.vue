@@ -40,7 +40,7 @@
         </div>
     </div>
     <div class="task-operation-box">
-      <div class="task-complete">确认</div>
+      <div class="task-complete">确 认</div>
     </div>
   </div>
 </template>
