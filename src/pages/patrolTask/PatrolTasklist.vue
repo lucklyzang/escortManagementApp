@@ -53,7 +53,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="no-more-data">没有更多数据了</div>
+                        <div class="no-more-data" v-show="isShowBacklogTaskNoMoreData">没有更多数据了</div>
                     </div>    
                 </van-tab>
                 <van-tab title="已完成" name="completetedTask">
@@ -98,7 +98,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="no-more-data">没有更多数据了</div>
+                        <div class="no-more-data" v-show="isShowCompletetedTaskNoMoreData">没有更多数据了</div>
                     </div>    
                 </van-tab>
             </van-tabs>
@@ -119,6 +119,8 @@ export default {
     return {
       loadingShow: false,
       overlayShow: false,
+      isShowBacklogTaskNoMoreData: false,
+      isShowCompletetedTaskNoMoreData: false,
       activeName: 'backlogTask',
       statusBackgroundPng: require("@/common/images/home/status-background.png"),
       taskList: [
