@@ -17,13 +17,14 @@
 import NavBar from "@/components/NavBar";
 import ElectronicSignature from '@/components/ElectronicSignature'
 import { mapGetters, mapMutations } from "vuex";
-import { IsPC } from "@/common/js/utils";
+import {mixinsDeviceReturn} from '@/mixins/deviceReturnFunction';
 export default {
   name: "WorkOrderElectronicSignature",
   components: {
     NavBar,
     ElectronicSignature
   },
+  mixins:[mixinsDeviceReturn],
   data() {
     return {
     
@@ -32,15 +33,7 @@ export default {
 
   mounted() {
     // 控制设备物理返回按键
-    if (!IsPC()) {
-      pushHistory();
-      this.gotoURL(() => {
-        pushHistory();
-        this.$router.push({
-          path: "/workOrderDetails",
-        })
-      })
-    }
+    this.deviceReturn("/workOrderDetails")
   },
 
   watch: {},

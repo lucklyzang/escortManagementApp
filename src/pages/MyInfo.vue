@@ -99,12 +99,14 @@ import {
 	userSignOut
 } from '@/api/login.js'
 import { mapGetters, mapMutations } from "vuex";
-import { IsPC, removeAllLocalStorage } from "@/common/js/utils";
+import {mixinsDeviceReturn} from '@/mixins/deviceReturnFunction';
+import { removeAllLocalStorage } from "@/common/js/utils";
 export default {
   name: "MyInfo",
   components: {
     NavBar
   },
+  mixins:[mixinsDeviceReturn],
   data() {
     return {
       quitDialogShow: false,
@@ -122,15 +124,7 @@ export default {
 
   mounted() {
     // 控制设备物理返回按键
-    if (!IsPC()) {
-      pushHistory();
-      this.gotoURL(() => {
-        pushHistory();
-        this.$router.push({
-          path: "/home",
-        })
-      })
-    }
+    this.deviceReturn("/home")
   },
 
   watch: {},

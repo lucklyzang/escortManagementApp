@@ -119,12 +119,14 @@
 <script>
 import NavBar from "@/components/NavBar";
 import { mapGetters, mapMutations } from "vuex";
-import { IsPC, compress } from "@/common/js/utils";
+import {mixinsDeviceReturn} from '@/mixins/deviceReturnFunction';
+import { compress } from "@/common/js/utils";
 export default {
   name: "ProblemRecord",
   components: {
     NavBar
   },
+  mixins:[mixinsDeviceReturn],
   data() {
     return {
       overlayShow: false,
@@ -149,15 +151,7 @@ export default {
 
   mounted() {
     // 控制设备物理返回按键
-    if (!IsPC()) {
-      pushHistory();
-      this.gotoURL(() => {
-        pushHistory();
-        this.$router.push({
-          path: `${this.enterProblemRecordMessage['enterProblemRecordPageSource']}`
-        })
-      })
-    }
+    this.deviceReturn(`${this.enterProblemRecordMessage['enterProblemRecordPageSource']}`)
   },
 
   watch: {},

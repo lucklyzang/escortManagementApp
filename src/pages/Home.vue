@@ -43,10 +43,6 @@
         mapGetters,
         mapMutations
     } from 'vuex'
-    import {
-        IsPC,
-        removeExceptLoginMessageLocalStorage
-    } from '@/common/js/utils'
     export default {
         name: 'Home',
         components: {
@@ -66,16 +62,6 @@
         },
 
         mounted() {
-            // 控制设备物理返回按键
-            if (!IsPC()) {
-                pushHistory();
-                this.gotoURL(() => {
-                    pushHistory();
-					this.$router.push({
-						path: '/home'
-					})
-                })
-            }
         },
 
         watch: {},

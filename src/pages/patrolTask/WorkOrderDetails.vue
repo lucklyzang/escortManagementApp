@@ -48,12 +48,13 @@
 <script>
 import NavBar from "@/components/NavBar";
 import { mapGetters, mapMutations } from "vuex";
-import { IsPC } from "@/common/js/utils";
+import {mixinsDeviceReturn} from '@/mixins/deviceReturnFunction';
 export default {
   name: "WorkOrderDetails",
   components: {
     NavBar
   },
+  mixins:[mixinsDeviceReturn],
   data() {
     return {
       overlayShow: false,
@@ -99,15 +100,7 @@ export default {
 
   mounted() {
     // 控制设备物理返回按键
-    if (!IsPC()) {
-      pushHistory();
-      this.gotoURL(() => {
-        pushHistory();
-        this.$router.push({
-          path: "/patrolTasklist",
-        })
-      })
-    };
+    this.deviceReturn("/workOrderDetails");
     // 二维码回调方法绑定到window下面,提供给外部调用
     let me = this;
     window['scanQRcodeCallback'] = (code) => {
