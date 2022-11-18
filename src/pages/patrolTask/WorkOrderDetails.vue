@@ -132,7 +132,7 @@ export default {
 
     // 查看问题项事件
     viewProblemItemsEvent () {
-      this.$router.push({path: '/QuestionList'})
+      this.$router.push({path: '/questionList'})
     },
 
     // 扫码事件

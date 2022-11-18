@@ -40,7 +40,7 @@
         </div>
     </div>
     <div class="task-operation-box">
-      <div class="task-complete">确 认</div>
+      <div class="task-complete" v-preventReClick="[sureEvent]">确 认</div>
     </div>
   </div>
 </template>
@@ -128,6 +128,10 @@ export default {
       temporaryInfo['enterProblemRecordPageSource'] = '/areaPatrolDetails';
       this.changeEnterProblemRecordMessage(temporaryInfo);
       this.$router.push({path: '/problemRecord'})
+    },
+
+    // 确认事件
+    sureEvent () {
     }
   }
 };

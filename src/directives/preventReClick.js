@@ -5,11 +5,12 @@ Vue.directive('preventReClick', {
   inserted (el, binding) {
     let openDalay = false;
     el.addEventListener('click', () => {
-        if(openDalay) return;
-        openDalay = !openDalay;
-        setTimeout(() => {
-          openDalay = !openDalay
-        }, binding.value || 3000)
+      if(openDalay) return;
+      openDalay = !openDalay;
+      binding.value[0]();
+      setTimeout(() => {
+        openDalay = !openDalay
+      }, binding.value[1] || 3000)
     })
   }
 })

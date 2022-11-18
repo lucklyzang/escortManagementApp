@@ -89,7 +89,7 @@
         </div>
     </div>
     <div class="task-operation-box">
-      <div class="task-no-complete">确 认</div>
+      <div class="task-no-complete" v-show="enterProblemRecordMessage.isAllowOperation" v-preventReClick="[sureEvent]">确 认</div>
     </div>
     <transition name="van-slide-up">
       <div class="choose-photo-box" v-show="photoBox">
@@ -397,8 +397,12 @@ export default {
 
     // 拍照取消
     photoCancel () {
-    this.photoBox = false;
-    this.overlayShow = false
+      this.photoBox = false;
+      this.overlayShow = false
+    },
+
+    // 确认事件
+    sureEvent () {
     }
   }
 };
