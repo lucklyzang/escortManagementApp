@@ -42,7 +42,6 @@
     </div>
     <div class="task-operation-box">
       <div class="task-no-complete" @click="viewProblemItemsEvent">查看问题项</div>
-      <div class="task-complete" @click="completeTaskEvent">完成任务</div>
     </div>
   </div>
 </template>
@@ -134,11 +133,6 @@ export default {
     // 查看问题项事件
     viewProblemItemsEvent () {
       this.$router.push({path: '/questionList'})
-    },
-
-    // 完成任务事件
-    completeTaskEvent () {
-
     },
 
     // 扫码事件
