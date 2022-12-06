@@ -15,6 +15,7 @@ export function getDefaultLoginState() {
 // 陪护管理信息store的初始值
 export function getDefaultEscortManagementState() {
     return {
+        taskType: {}, //任务类型
         enterProblemRecordMessage: {}, //进入问题记录页时携带的相关信息
         patrolTaskListMessage: {}, //巡查任务列表信息
         currentElectronicSignature: null, // 工单完成时的签名信息

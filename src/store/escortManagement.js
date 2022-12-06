@@ -12,6 +12,10 @@ export default {
             return state.patrolTaskListMessage
         },
 
+        taskType: (state) => {
+            return state.taskType
+        },
+
         currentElectronicSignature: (state) => {
             return state.currentElectronicSignature
         },
@@ -45,6 +49,11 @@ export default {
         // 保存工单完成时原始电子签名信息
         changeOriginalSignature(state, payLoad) {
             state.originalSignature = payLoad
+        },
+
+        // 保存任务切换类型
+        changeTaskType (state, payLoad) {
+            state.taskType = payLoad
         },
 
         //重置陪护管理状态

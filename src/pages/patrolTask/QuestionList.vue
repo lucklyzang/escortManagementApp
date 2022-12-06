@@ -176,13 +176,16 @@ export default {
     // 任务状态转换
     taskStatusTransition (num) {
         switch(num) {
-            case 1 :
+             case 1 :
                 return '未开始'
                 break;
             case 2 :
                 return '进行中'
                 break;
             case 3 :
+                return '待签字'
+                break;
+            case 4 :
                 return '已完成'
                 break;
         }

@@ -1,6 +1,6 @@
 <template>
   <div class="page-box" ref="wrapper">
-    <van-loading size="35px" vertical color="#e6e6e6" v-show="loadingShow">退出中...</van-loading>
+    <van-loading size="35px" vertical color="#e6e6e6" v-show="loadingShow">加载中...</van-loading>
     <van-overlay :show="overlayShow" z-index="100000" />
     <div class="nav">
         <NavBar path="/home" title="巡查任务" />
@@ -12,41 +12,42 @@
         <div class="content-box">
             <van-tabs v-model="activeName" color="#1684FC" title-inactive-color="#BEC7D1" title-active-color="#1684FC" @change="vanTabsChangeEvent">
                 <van-tab title="待办任务" name="backlogTask">
-                    <div class="backlog-task-list-box" ref="scrollBacklogTask">
-                        <div class="backlog-task-list" v-for="(item,index) in taskList" :key="index">
+                    <van-empty description="暂无数据" v-show="backlogEmptyShow" />
+                    <div class="backlog-task-list-box" ref="scrollBacklogTask" v-show="!backlogEmptyShow">
+                        <div class="backlog-task-list" v-for="(item,index) in backlogTaskList" :key="index">
                             <div class="backlog-task-top">
                                 <div class="backlog-task-top-left">
                                     <span>任务编号</span>
-                                    <span>{{ item.taskNumber }}</span>
+                                    <span>{{ item.number }}</span>
                                 </div>
                                 <div class="backlog-task-top-right">
-                                    <span :class="{'spanNoStartStyle': item.status == 1,'spanCompletedStyle': item.status == 3}">{{ taskStatusTransition(item.status) }}</span>
+                                    <span :class="{'spanNoStartStyle': item.state == 1,'spanCompletedStyle': item.state == 4}">{{ taskStatusTransition(item.state) }}</span>
                                 </div>
                             </div>
                             <div class="backlog-task-content">
                                 <div class="taskset-name">
                                     <span>任务集名称:</span>
-                                    <span>{{ item.tasksetName }}</span>
+                                    <span>{{ item.configName }}</span>
                                 </div>
                                 <div class="taskset-create-time-type">
                                     <span>任务集生成时间类型:</span>
-                                    <span>{{ item.tasksetCreateTimeType }}</span>
+                                    <span>{{ taskSetTransition(item.type) }}</span>
                                 </div>
                                 <div class="task-create-time">
                                     <span>任务生成时间:</span>
-                                    <span>{{ item.taskCreateTime }}</span>
+                                    <span>{{ item.createTime }}</span>
                                 </div>
                                 <div class="complete-patrol-area">
                                     <span>已完成巡查区域:</span>
-                                    <span>{{ item.completePatrolArea }}</span>
+                                    <span>{{ item.finishSpacesCount }}</span>
                                 </div>
                                 <div class="unfinished-patrol-area">
                                     <span>未完成巡查区域:</span>
-                                    <span>{{ item.unfinishedPatrolArea }}</span>
+                                    <span>{{ item.noFinishSpacesCount }}</span>
                                 </div>
                                 <div class="taskset-number">
                                     <span>任务集编号:</span>
-                                    <span>{{ item.tasksetNumber }}</span>
+                                    <span>{{ item.configNumber }}</span>
                                 </div>
                                 <div class="right-arrow-box" @click="taskDetailsEvent(item)">
                                     <van-icon name="arrow" color="#1684FC" size="24" />
@@ -57,41 +58,42 @@
                     </div>    
                 </van-tab>
                 <van-tab title="已完成" name="completetedTask">
-                    <div class="backlog-task-list-box" ref="scrollCompletetedTask">
-                        <div class="backlog-task-list" v-for="(item,index) in taskList" :key="index">
+                    <van-empty description="暂无数据" v-show="completedEmptyShow" />
+                    <div class="backlog-task-list-box" ref="scrollCompletetedTask" v-show="!completedEmptyShow">
+                        <div class="backlog-task-list" v-for="(item,index) in completedTaskList" :key="index">
                             <div class="backlog-task-top">
                                 <div class="backlog-task-top-left">
                                     <span>任务编号</span>
-                                    <span>{{ item.taskNumber }}</span>
+                                    <span>{{ item.number }}</span>
                                 </div>
                                 <div class="backlog-task-top-right">
-                                    <span :class="{'spanNoStartStyle': item.status == 1,'spanCompletedStyle': item.status == 3}">{{ taskStatusTransition(item.status) }}</span>
+                                    <span :class="{'spanNoStartStyle': item.state == 1,'spanCompletedStyle': item.state == 3}">{{ taskStatusTransition(item.state) }}</span>
                                 </div>
                             </div>
                             <div class="backlog-task-content">
                                 <div class="taskset-name">
                                     <span>任务集名称:</span>
-                                    <span>{{ item.tasksetName }}</span>
+                                    <span>{{ item.configName }}</span>
                                 </div>
                                 <div class="taskset-create-time-type">
                                     <span>任务集生成时间类型:</span>
-                                    <span>{{ item.tasksetCreateTimeType }}</span>
+                                    <span>{{ taskSetTransition(item.type) }}</span>
                                 </div>
                                 <div class="task-create-time">
                                     <span>任务生成时间:</span>
-                                    <span>{{ item.taskCreateTime }}</span>
+                                    <span>{{ item.createTime }}</span>
                                 </div>
                                 <div class="complete-patrol-area">
                                     <span>已完成巡查区域:</span>
-                                    <span>{{ item.completePatrolArea }}</span>
+                                    <span>{{ item.finishSpacesCount }}</span>
                                 </div>
                                 <div class="unfinished-patrol-area">
                                     <span>未完成巡查区域:</span>
-                                    <span>{{ item.unfinishedPatrolArea }}</span>
+                                    <span>{{ item.noFinishSpacesCount }}</span>
                                 </div>
                                 <div class="taskset-number">
                                     <span>任务集编号:</span>
-                                    <span>{{ item.tasksetNumber }}</span>
+                                    <span>{{ item.configNumber }}</span>
                                 </div>
                                 <div class="right-arrow-box" @click="taskDetailsEvent(item)">
                                     <van-icon name="arrow" color="#1684FC" size="24" />
@@ -109,6 +111,7 @@
 <script>
 import NavBar from "@/components/NavBar";
 import { mapGetters, mapMutations } from "vuex";
+import {getAllTaskList} from '@/api/escortManagement.js'
 import {mixinsDeviceReturn} from '@/mixins/deviceReturnFunction'
 export default {
   name: "PatrolTasklist",
@@ -120,54 +123,14 @@ export default {
     return {
       loadingShow: false,
       overlayShow: false,
+      backlogEmptyShow: false,
+      completedEmptyShow: false,
       isShowBacklogTaskNoMoreData: false,
       isShowCompletetedTaskNoMoreData: false,
       activeName: 'backlogTask',
       statusBackgroundPng: require("@/common/images/home/status-background.png"),
-      taskList: [
-        {
-            taskNumber: 'kx239230237829032780327',
-            tasksetName: '日常巡查',
-            tasksetCreateTimeType: '每天',
-            taskCreateTime: '2022-10-14 00:00',
-            completePatrolArea: 3,
-            unfinishedPatrolArea: 2,
-            tasksetNumber: 'kx2392302',
-            status: 1
-
-        },
-        {
-            taskNumber: 'kx239230237829032780327',
-            tasksetName: '巡查1',
-            tasksetCreateTimeType: '每天',
-            taskCreateTime: '2022-10-14 00:00',
-            completePatrolArea: 3,
-            unfinishedPatrolArea: 2,
-            tasksetNumber: 'kx2392302',
-            status: 3
-        },
-        {
-            taskNumber: 'kx239230237829032780327',
-            tasksetName: '日常巡查',
-            tasksetCreateTimeType: '每天',
-            taskCreateTime: '2022-10-14 00:00',
-            completePatrolArea: 3,
-            unfinishedPatrolArea: 2,
-            tasksetNumber: 'kx2392302',
-            status: 2
-
-        },
-        {
-            taskNumber: 'kx239230237829032780327',
-            tasksetName: '巡查1',
-            tasksetCreateTimeType: '每天',
-            taskCreateTime: '2022-10-14 00:00',
-            completePatrolArea: 3,
-            unfinishedPatrolArea: 2,
-            tasksetNumber: 'kx2392302',
-            status: 3
-        }
-      ]
+      backlogTaskList: [],
+      completedTaskList: []
     }
   },
 
@@ -176,17 +139,18 @@ export default {
     this.deviceReturn('/home');
     this.$nextTick(()=> {
         this.initScrollChange()
-    })
+    });
+    this.queryTaskList(this.taskType.taskTypeName ? this.taskType.taskTypeName == 'backlogTask' ? 1 : 4 : 1)
   },
 
   watch: {},
 
   computed: {
-    ...mapGetters(["userInfo"])
+    ...mapGetters(["userInfo","taskType"])
   },
 
   methods: {
-    ...mapMutations(["changePatrolTaskListMessage"]),
+    ...mapMutations(["changePatrolTaskListMessage","changeTaskType"]),
 
     // 任务状态转换
     taskStatusTransition (num) {
@@ -198,7 +162,28 @@ export default {
                 return '进行中'
                 break;
             case 3 :
+                return '待签字'
+                break;
+            case 4 :
                 return '已完成'
+                break;
+        }
+    },
+
+    // 任务集类型转换
+    taskSetTransition (num) {
+        switch(num) {
+            case '1' :
+                return '每天'
+                break;
+            case '2' :
+                return '每周'
+                break;
+            case '3' :
+                return '工作日'
+                break;
+            case '4' :
+                return '节假日和周末'
                 break;
         }
     },
@@ -226,9 +211,56 @@ export default {
         }    
     },
 
+    // 获取任务列表
+    queryTaskList (value) {
+        console.log(value);
+        this.loadingShow = true;
+        this.overlayShow = true;
+        this.backlogEmptyShow = false;
+        this.completedEmptyShow = false;
+		getAllTaskList({proId : this.userInfo.proIds[0], workerId: this.userInfo.id})
+        .then((res) => {
+            this.loadingShow = false;
+            this.overlayShow = false;
+        if (res && res.data.code == 200) {
+            if (value == 1) {
+                this.backlogTaskList = res.data.data.filter((item) => { return item.state == value});
+                if (this.backlogTaskList.length == 0) {
+                    this.backlogEmptyShow = true
+                }
+            } else if (value == 4) {
+                this.completedTaskList = res.data.data.filter((item) => { return item.state == value});
+                if (this.completedTaskList.length == 0) {
+                    this.completedEmptyShow = true
+                }
+            }
+        } else {
+          this.$toast({
+            type: 'fail',
+            message: res.msg
+          })
+        }
+      })
+      .catch((err) => {
+        this.loadingShow = false;
+        this.overlayShow = false;
+        this.$toast({
+          type: 'fail',
+          message: err
+        })
+      })
+    },
+
     // tab切换值变化事件
     vanTabsChangeEvent (value) {
-        console.log(value);
+        console.log(this.activeName);
+        let temporaryText;
+        if (value == 'backlogTask') {
+            temporaryText = 1;
+        } else if (value == 'completetedTask') {
+             temporaryText = 4
+        };
+        this.queryTaskList(temporaryText);
         this.$nextTick(()=> {
             this.initScrollChange()
         })
@@ -237,6 +269,9 @@ export default {
     // 点击进入任务详情事件
     taskDetailsEvent (item) {
         this.changePatrolTaskListMessage(item);
+        let temporaryMessage = this.taskType;
+        temporaryMessage['taskTypeName'] = this.activeName;
+        this.changeTaskType(temporaryMessage);
         this.$router.push('/workOrderDetails')
     }
   }
@@ -320,6 +355,13 @@ export default {
                 overflow: scroll;
                 .van-tab__pane {
                     height: 100%;
+                    position: relative;
+                    .van-empty {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%,-50%)
+                    };
                     .backlog-task-list-box {
                         overflow: scroll;
                         height: 100%;

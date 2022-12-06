@@ -16,24 +16,24 @@
         <div class="content-box">
             <div class="location task-number">
                 <span>任务编号</span>
-                <span>医院</span>
+                <span>{{ patrolTaskListMessage.number }}</span>
             </div>
             <div class="location">
                 <span>所属任务集名称</span>
-                <span>2022-10-32 12:09</span>
+                <span>{{ patrolTaskListMessage.configName }}</span>
             </div>
             <div class="location">
                 <span>所属任务集生成时间类型</span>
-                <span>每天</span>
+                <span>{{ taskSetTransition(patrolTaskListMessage.type) }}</span>
             </div>
             <div class="location task-create-time">
                 <span>该任务生成时间</span>
-                <span>2022-10-32 12:09</span>
+                <span>{{ patrolTaskListMessage.createTime }}</span>
             </div>
             <div class="patrol-site">
                 <div>巡查地点</div>
                 <div class="patrol-site-list-box">
-                    <div class="patrol-site-list" v-for="(item,index) in patrolSiteList" :key="index" @click="patrolSiteEvent">
+                    <div class="patrol-site-list" v-for="(item,index) in patrolTaskListMessage.needSpaces" :key="index" @click="patrolSiteEvent">
                         {{ item.name }}
                     </div>
                 </div>
@@ -42,6 +42,7 @@
     </div>
     <div class="task-operation-box">
       <div class="task-no-complete" @click="viewProblemItemsEvent">查看问题项</div>
+      <div class="task-complete" @click="completeTaskEvent">完成任务</div>
     </div>
   </div>
 </template>
@@ -60,41 +61,7 @@ export default {
       overlayShow: false,
       loadingShow: false,
       loadText: '更新中',
-      statusBackgroundPng: require("@/common/images/home/status-background.png"),
-      patrolSiteList: [
-        {
-            name: '肛肠洒洒水科',
-            id: 1
-        },
-        {
-            name: '肛肠现在科',
-            id: 2
-        },
-        {
-            name: '肛肠飒飒飒飒飒飒飒飒撒科',
-            id: 3
-        },
-        {
-            name: '肛肠现在科',
-            id: 4
-        },
-        {
-            name: '肛肠下科',
-            id: 5
-        },
-        {
-            name: '肛肠程序出错科',
-            id: 6
-        },
-        {
-            name: '肛肠踩踩踩法国科',
-            id: 7
-        },
-        {
-            name: '肛肠科反对反对反对',
-            id: 8
-        }
-      ]
+      statusBackgroundPng: require("@/common/images/home/status-background.png")
     }
   },
 
@@ -135,6 +102,11 @@ export default {
       this.$router.push({path: '/questionList'})
     },
 
+    // 完成任务事件
+    completeTaskEvent () {
+      this.$router.push({path: '/workOrderElectronicSignature'})
+    },
+
     // 扫码事件
     scanQRCodeEvent () {
       this.scanQRCode()
@@ -150,28 +122,60 @@ export default {
     },
 
     // 摄像头扫码后的回调
-    scanQRcodeCallback(code) {},
+    scanQRcodeCallback(code) {
+      if (code) {
+        let codeData = code.split('|');
+        if (codeData.length > 0) {
+          let departmentId = codeData[0];
+          let departmentNo = codeData[1];
+        }
+      } else {
+        this.$dialog.alert({
+          message: '当前没有扫描到任何信息,请重新扫描'
+        }).then(() => {
+          this.scanQRCodeEvent()
+        });
+      }
+    },
 
     // 任务状态转换
     stausTransfer (num) {
       switch(num) {
         case 1:
-            return '未开始'
-            break;
+          return '未开始'
+          break;
         case 2:
-            return '进行中'
-            break;
+          return '进行中'
+          break;
         case 3:
-            return '复核中'
-            break;
+          return '复核中'
+          break;
         case 4:
-            return '已完成'
-            break;
+          return '已完成'
+          break;
         case 5:
-            return '已复核'
-            break
+          return '已复核'
+          break
       } 
-    }
+    },
+
+    // 任务集类型转换
+    taskSetTransition (num) {
+      switch(num) {
+        case '1' :
+          return '每天'
+          break;
+        case '2' :
+          return '每周'
+          break;
+        case '3' :
+          return '工作日'
+          break;
+        case '4' :
+          return '节假日和周末'
+          break;
+      }
+    },
   }
 };
 </script>
