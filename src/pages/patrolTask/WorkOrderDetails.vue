@@ -42,6 +42,7 @@
     </div>
     <div class="task-operation-box">
       <div class="task-no-complete" @click="viewProblemItemsEvent">查看问题项</div>
+      <div class="task-complete" @click="completeTaskEvent">完成任务</div>
     </div>
   </div>
 </template>
@@ -133,6 +134,11 @@ export default {
     // 查看问题项事件
     viewProblemItemsEvent () {
       this.$router.push({path: '/questionList'})
+    },
+
+    // 完成任务事件
+    completeTaskEvent () {
+
     },
 
     // 扫码事件
@@ -306,9 +312,10 @@ export default {
     justify-content: center;
     background: #fff;
     >div {
-      width: 48%;
+      width: 40%;
       height: 48px;
       font-size: 18px;
+      margin-right: 20px;
       line-height: 48px;
       background: #fff;
       text-align: center;
@@ -316,6 +323,12 @@ export default {
       &:first-child {
         color: #1684FC;
         border: 1px solid #1684FC
+      };
+       &:last-child {
+        color: #fff;
+        margin-right: 0;
+        background: linear-gradient(to right, #6cd2f8, #2390fe);
+        box-shadow: 0px 2px 6px 0px rgba(36, 149, 213, 1);
       }
     }
   }
