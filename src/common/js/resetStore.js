@@ -16,6 +16,10 @@ export function getDefaultLoginState() {
 export function getDefaultEscortManagementState() {
     return {
         taskType: {}, //任务类型
+        departmentCheckList: {
+            depId: '',
+            checkItemList: []
+        }, // 科室检查项信息
         enterProblemRecordMessage: {}, //进入问题记录页时携带的相关信息
         patrolTaskListMessage: {}, //巡查任务列表信息
         currentElectronicSignature: null, // 工单完成时的签名信息

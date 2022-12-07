@@ -33,8 +33,8 @@
             <div class="patrol-site">
                 <div>巡查地点</div>
                 <div class="patrol-site-list-box">
-                    <div class="patrol-site-list" v-for="(item,index) in patrolTaskListMessage.needSpaces" :key="index" @click="patrolSiteEvent">
-                        {{ item.name }}
+                    <div class="patrol-site-list" :class="{'patrolSiteListStyle': patrolTaskListMessage.hasArray.indexOf(item) > -1 }" v-for="(item,index) in patrolTaskListMessage.needArray" :key="index" @click="patrolSiteEvent">
+                        {{ item }}
                     </div>
                 </div>
             </div>
@@ -49,6 +49,7 @@
 <script>
 import NavBar from "@/components/NavBar";
 import { mapGetters, mapMutations } from "vuex";
+import {getTaskDetails,departmentScanCode} from '@/api/escortManagement.js'
 import {mixinsDeviceReturn} from '@/mixins/deviceReturnFunction';
 export default {
   name: "WorkOrderDetails",
@@ -60,7 +61,7 @@ export default {
     return {
       overlayShow: false,
       loadingShow: false,
-      loadText: '更新中',
+      loadText: '加载中',
       statusBackgroundPng: require("@/common/images/home/status-background.png")
     }
   },
@@ -68,6 +69,8 @@ export default {
   mounted() {
     // 控制设备物理返回按键
     this.deviceReturn("/workOrderDetails");
+    // 获取任务详情
+    this.queryTaskDetails();
     // 二维码回调方法绑定到window下面,提供给外部调用
     let me = this;
     window['scanQRcodeCallback'] = (code) => {
@@ -81,11 +84,11 @@ export default {
   watch: {},
 
   computed: {
-    ...mapGetters(["userInfo","patrolTaskListMessage"]),
+    ...mapGetters(["userInfo","patrolTaskListMessage","departmentCheckList"])
   },
 
   methods: {
-    ...mapMutations([]),
+    ...mapMutations(["changeDepartmentCheckList","changePatrolTaskListMessage"]),
 
     // 顶部导航左边点击事件
     onClickLeft () {
@@ -117,6 +120,71 @@ export default {
       window.android.scanQRcode();
     },
 
+    // 获取任务详情
+    queryTaskDetails () {
+      this.loadingShow = true;
+      this.overlayShow = true;
+      this.loadText = '加载中';
+      getTaskDetails(
+        this.patrolTaskListMessage.id
+      ).then((res) => {
+        if (res && res.data.code == 200) {
+          console.log(res.data.data);
+          this.loadingShow = false;
+          this.overlayShow = false;
+          this.changePatrolTaskListMessage(res.data.data)
+        } else {
+          this.$toast({
+            type: 'fail',
+            message: res.data.msg
+          })
+        }
+      })
+      .catch((err) => {
+        this.loadingShow = false;
+        this.overlayShow = false;
+        this.$toast({
+          type: 'fail',
+          message: err
+        })
+      })
+    },
+
+    // 扫码科室
+    codeDepartment (depId) {
+      this.loadingShow = true;
+      this.overlayShow = true;
+      this.loadText = '校验中';
+      departmentScanCode({
+        taskId: this.patrolTaskListMessage.id, //当前任务id
+        depId, // 当前扫描科室id
+        workerId: this.userInfo.id // 当前登陆员工id
+      }).then((res) => {
+        if (res && res.data.code == 200) {
+          this.loadingShow = false;
+          this.overlayShow = false;
+          let temporaryMessage = this.departmentCheckList;
+          temporaryMessage['depId'] = depId;
+          temporaryMessage['checkItemList'] = res.data.data;
+          this.changeDepartmentCheckList(temporaryMessage);
+          this.$router.push({path: '/areaPatrolDetails'})
+        } else {
+          this.$toast({
+            type: 'fail',
+            message: res.data.msg
+          })
+        }
+      })
+      .catch((err) => {
+        this.loadingShow = false;
+        this.overlayShow = false;
+        this.$toast({
+          type: 'fail',
+          message: err
+        })
+      })
+    },
+
     // 摄像头取消扫码后的回调
     scanQRcodeCallbackCanceled () {
     },
@@ -126,8 +194,7 @@ export default {
       if (code) {
         let codeData = code.split('|');
         if (codeData.length > 0) {
-          let departmentId = codeData[0];
-          let departmentNo = codeData[1];
+          this.codeDepartment(codeData[0])
         }
       } else {
         this.$dialog.alert({
@@ -186,6 +253,9 @@ export default {
 .page-box {
   height: 0;
   .content-wrapper();
+  /deep/ .van-overlay {
+    z-index: 1000 !important
+  };
   .nav {
     position: fixed;
     width: 100%;

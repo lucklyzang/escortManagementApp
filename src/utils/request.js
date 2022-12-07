@@ -2,8 +2,9 @@ import axios from 'axios'
 import store from '@/store'
 import router from '../router'
 import Vue from 'vue';
+import { removeAllLocalStorage } from "@/common/js/utils";
 import { Dialog, Toast } from 'vant';
-// 全局注册
+// 全局注册 
 Vue.use(Dialog);
 // 开发环境： http://blink.blinktech.cn
 // 测试环境：http://show.blinktech.cn

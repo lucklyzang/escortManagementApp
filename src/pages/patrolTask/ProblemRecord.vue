@@ -121,6 +121,8 @@ import NavBar from "@/components/NavBar";
 import { mapGetters, mapMutations } from "vuex";
 import {mixinsDeviceReturn} from '@/mixins/deviceReturnFunction';
 import { compress } from "@/common/js/utils";
+import {getAliyunSign} from '@/api/login.js'
+import axios from 'axios'
 export default {
   name: "ProblemRecord",
   components: {
@@ -143,6 +145,7 @@ export default {
       problemPicturesList: [],
       imgOnlinePathArr: [],
       imgBoxShow: false,
+      isExpire: false,
       currentImgUrl: '',
       temporaryFileArray: [],
       echoProblemPicturesEchoList: [require("@/common/images/home/status-background.png"),require("@/common/images/home/status-background.png")]
@@ -157,11 +160,11 @@ export default {
   watch: {},
 
   computed: {
-    ...mapGetters(["userInfo","enterProblemRecordMessage"])
+    ...mapGetters(["userInfo","enterProblemRecordMessage","ossMessage","timeMessage"])
   },
 
   methods: {
-    ...mapMutations([]),
+    ...mapMutations(["changeOssMessage","changeTimeMessage"]),
 
     // 顶部导航左边点击事件
     onClickLeft () {

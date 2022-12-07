@@ -237,7 +237,7 @@ export default {
         } else {
           this.$toast({
             type: 'fail',
-            message: res.msg
+            message: res.data.msg
           })
         }
       })

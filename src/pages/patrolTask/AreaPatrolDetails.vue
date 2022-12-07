@@ -16,14 +16,14 @@
                 <span>当前区域: 体检科</span>
             </div>
             <div class="patrol-item-box">
-                <div class="patrol-item-list" v-for="(item, index) in patrolItemList" :key="index">
+                <div class="patrol-item-list" v-for="(item, index) in departmentCheckList.checkItemList" :key="index">
                     <div class="patrol-item-list-left">
                         <span>{{ index + 1}}</span>
-                        <span>{{ item.itemName }}</span>
+                        <span>{{ item.name }}</span>
                     </div>
                     <div class="patrol-item-list-right">
-                        <van-radio-group v-model="item.isChecked" direction="horizontal">
-                            <van-radio name="1" @click="(event) => passEvent(event,item,index)">
+                        <van-radio-group v-model="item.checkResult" direction="horizontal">
+                            <van-radio name="0" @click="(event) => passEvent(event,item,index)">
                                 <template #icon="props">
                                     <img class="img-icon" :src="props.checked ? checkCheckboxPng : checkboxPng" />
                                 </template>
@@ -47,7 +47,9 @@
 <script>
 import NavBar from "@/components/NavBar";
 import { mapGetters, mapMutations } from "vuex";
-import {mixinsDeviceReturn} from '@/mixins/deviceReturnFunction'
+import { checkItemPass, checkItemNoPass, submitCheckItem } from '@/api/escortManagement.js'
+import { mixinsDeviceReturn } from '@/mixins/deviceReturnFunction'
+import { deepClone } from '@/common/js/utils'
 export default {
   name: "AreaPatrolDetails",
   components: {
@@ -63,21 +65,7 @@ export default {
       checkCheckboxPng: require("@/common/images/home/check-checkbox-circle.png"),
       checkboxPng: require("@/common/images/home/checkbox-circle.png"),
       closeCirclePng: require("@/common/images/home/close-circle.png"),
-      checkCloseCirclePng: require("@/common/images/home/check-close-circle.png"),
-      patrolItemList: [
-        {
-            itemName: '老人是否都在',
-            isChecked: '1'
-        },
-        {
-            itemName: '设施是否安全可用',
-            isChecked: '1'
-        },
-        {
-            itemName: '药品是否都有',
-            isChecked: '2'
-        }
-      ]
+      checkCloseCirclePng: require("@/common/images/home/check-close-circle.png")
     }
   },
 
@@ -86,29 +74,29 @@ export default {
     this.deviceReturn('/workOrderDetails')
   },
 
-  activated () {
-    // 控制设备物理返回按键
-    this.deviceReturn('/workOrderDetails')
-  },
+  // activated () {
+  //   // 控制设备物理返回按键
+  //   this.deviceReturn('/workOrderDetails')
+  // },
 
-  beforeRouteEnter(to, from, next) {
-    next(vm=>{
-      if (from.path == '/workOrderDetails') {
-        //此页面进入时重新请求数据
-        console.log('重新请求数据');
-      }
-	  });
-    next() 
-  },
+  // beforeRouteEnter(to, from, next) {
+  //   next(vm=>{
+  //     if (from.path == '/workOrderDetails') {
+  //       //此页面进入时重新请求数据
+  //       console.log('重新请求数据');
+  //     }
+	//   });
+  //   next() 
+  // },
 
   watch: {},
 
   computed: {
-    ...mapGetters(["userInfo","enterProblemRecordMessage"]),
+    ...mapGetters(["userInfo","enterProblemRecordMessage","departmentCheckList","patrolTaskListMessage"]),
   },
 
   methods: {
-    ...mapMutations(["changeEnterProblemRecordMessage"]),
+    ...mapMutations(["changeEnterProblemRecordMessage","changeDepartmentCheckList"]),
 
     // 顶部导航左边点击事件
     onClickLeft () {
@@ -117,21 +105,109 @@ export default {
 
     // 通过事件
     passEvent (event,item,index) {
-      console.log(event,item,index)
+      this.loadingShow = true;
+      this.overlayShow = true;
+      this.loadText = '提交中';
+      checkItemPass({resultId:item.resultId}).then((res) => {
+        if (res && res.data.code == 200) {
+          this.loadingShow = false;
+          this.overlayShow = false;
+          this.$toast({
+            type: 'success',
+            message: '提交成功'
+          });
+          // 更改该检查项选中状态
+          let tempraryMessage = deepClone(this.departmentCheckList);
+          tempraryMessage['checkItemList'][index]['checkResult'] = 0;
+          this.changeDepartmentCheckList(tempraryMessage)
+        } else {
+          this.$toast({
+            type: 'fail',
+            message: res.data.msg
+          })
+        }
+      })
+      .catch((err) => {
+        this.loadingShow = false;
+        this.overlayShow = false;
+        this.$toast({
+          type: 'fail',
+          message: err
+        })
+      })
     },
 
     // 不通过事件
     noPassEvent (event,item,index) {
-      console.log(event,item,index);
-      let temporaryInfo = this.enterProblemRecordMessage;
-      temporaryInfo['isAllowOperation'] = true;
-      temporaryInfo['enterProblemRecordPageSource'] = '/areaPatrolDetails';
-      this.changeEnterProblemRecordMessage(temporaryInfo);
-      this.$router.push({path: '/problemRecord'})
+      this.loadingShow = true;
+      this.overlayShow = true;
+      this.loadText = '提交中';
+      checkItemNoPass({resultId:item.resultId}).then((res) => {
+        if (res && res.data.code == 200) {
+          this.loadingShow = false;
+          this.overlayShow = false;
+          this.$toast({
+            type: 'success',
+            message: '提交成功'
+          });
+          //保存进入问题记录页的相关信息
+          let temporaryInfo = this.enterProblemRecordMessage;
+          temporaryInfo['isAllowOperation'] = true;
+          temporaryInfo['enterProblemRecordPageSource'] = '/areaPatrolDetails';
+          this.changeEnterProblemRecordMessage(temporaryInfo);
+          // 更改该检查项选中状态
+          let tempraryMessage = deepClone(this.departmentCheckList);
+          tempraryMessage['checkItemList'][index]['checkResult'] = 2;
+          this.changeDepartmentCheckList(tempraryMessage)
+          this.$router.push({path: '/problemRecord'})
+        } else {
+          this.$toast({
+            type: 'fail',
+            message: res.data.msg
+          })
+        }
+      })
+      .catch((err) => {
+        this.loadingShow = false;
+        this.overlayShow = false;
+        this.$toast({
+          type: 'fail',
+          message: err
+        })
+      })
     },
 
     // 确认事件
     sureEvent () {
+      this.loadingShow = true;
+      this.overlayShow = true;
+      this.loadText = '提交中';
+      submitCheckItem({
+        taskId: this.patrolTaskListMessage.id,
+        depId: this.departmentCheckList.depId
+      }).then((res) => {
+        if (res && res.data.code == 200) {
+          this.loadingShow = false;
+          this.overlayShow = false;
+          this.$toast({
+            type: 'success',
+            message: '提交成功'
+          })
+        } else {
+          this.$toast({
+            type: 'fail',
+            message: res.data.msg
+          })
+        }
+      })
+      .catch((err) => {
+        this.loadingShow = false;
+        this.overlayShow = false;
+        this.$toast({
+          type: 'fail',
+          message: err
+        })
+      })
     }
   }
 };
