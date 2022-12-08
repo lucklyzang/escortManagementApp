@@ -67,7 +67,7 @@
                                     <span>{{ item.number }}</span>
                                 </div>
                                 <div class="backlog-task-top-right">
-                                    <span :class="{'spanNoStartStyle': item.state == 1,'spanCompletedStyle': item.state == 3}">{{ taskStatusTransition(item.state) }}</span>
+                                    <span :class="{'spanNoStartStyle': item.state == 1,'spanCompletedStyle': item.state == 4}">{{ taskStatusTransition(item.state) }}</span>
                                 </div>
                             </div>
                             <div class="backlog-task-content">
@@ -140,6 +140,9 @@ export default {
     this.$nextTick(()=> {
         this.initScrollChange()
     });
+    if (this.taskType.taskTypeName) {
+        this.activeName = this.taskType.taskTypeName
+    };
     this.queryTaskList(this.taskType.taskTypeName ? this.taskType.taskTypeName == 'backlogTask' ? 1 : 4 : 1)
   },
 
@@ -224,7 +227,7 @@ export default {
             this.overlayShow = false;
         if (res && res.data.code == 200) {
             if (value == 1) {
-                this.backlogTaskList = res.data.data.filter((item) => { return item.state == value});
+                this.backlogTaskList = res.data.data.filter((item) => { return item.state == value || item.state == 2 || item.state ==3 });
                 if (this.backlogTaskList.length == 0) {
                     this.backlogEmptyShow = true
                 }

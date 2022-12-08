@@ -52,6 +52,42 @@ export function submitCheckItem(data) {
 	})
 }
 
+// 上传问题工单
+export function problemWorkOrderUpload(data) {
+	return request({
+	    url: 'nblink/patrol/problemTask/problem',
+	    method: 'post',
+        data
+	})
+}
+
+
+// 本次任务问题工单
+export function getCurrentTaskProblemWorkerOrder(taskId) {
+	return request({
+	    url: `nblink/patrol/problemTask/app/current/${taskId}`,
+	    method: 'get'
+	})
+}
+
+// 所有任务问题工单
+export function getAllTaskProblemWorkerOrder(data) {
+	return request({
+	    url: 'nblink/patrol/problemTask/app/all',
+	    method: 'get',
+		params: data
+	})
+}
+
+// 查询任务问题工单详情
+export function getTaskProblemWorkerOrderDetails(data) {
+	return request({
+	    url: 'nblink/patrol/problemTask/app/one',
+	    method: 'get',
+		params: data
+	})
+}
+
 // 任务完成
 export function taskComplete(data) {
 	return request({

@@ -1,6 +1,6 @@
 <template>
   <div class="page-box" ref="wrapper">
-    <van-loading size="35px" vertical color="#e6e6e6" v-show="loadingShow">退出中...</van-loading>
+    <van-loading size="35px" vertical color="#e6e6e6" v-show="loadingShow">加载中...</van-loading>
     <van-overlay :show="overlayShow" z-index="100000" />
     <div class="nav">
         <NavBar path="/workOrderDetails" title="问题列表页" />
@@ -12,24 +12,25 @@
         <div class="content-box">
             <van-tabs v-model="activeName" color="#1684FC" title-inactive-color="#BEC7D1" title-active-color="#1684FC" @change="vanTabsChangeEvent">
                 <van-tab title="本次任务" name="currentTask">
-                    <div class="backlog-task-list" v-for="(item,index) in taskList" :key="index">
+                    <van-empty description="暂无数据" v-show="currentTaskOrderEmptyShow" />
+                    <div class="backlog-task-list" v-for="(item,index) in currentTaskProblemOrderList" :key="index" v-show="!currentTaskOrderEmptyShow">
                         <div class="backlog-task-top">
                             <div class="backlog-task-top-left">
                                 <span>任务编号</span>
                                 <span>{{ item.taskNumber }}</span>
                             </div>
                             <div class="backlog-task-top-right">
-                                <span :class="{'spanNoStartStyle': item.status == 1,'spanCompletedStyle': item.status == 3}">{{ taskStatusTransition(item.status) }}</span>
+                                <span :class="{'spanNoStartStyle': item.status == 1,'spanCompletedStyle': item.status == 4}">{{ taskStatusTransition(patrolTaskListMessage.state) }}</span>
                             </div>
                         </div>
                         <div class="backlog-task-content">
                             <div class="inspect-item">
                                 <span>巡查项:</span>
-                                <span>{{ item.tasksetName }}</span>
+                                <span>{{ item.itemName }}</span>
                             </div>
                             <div class="taskset-name">
                                 <span>任务集名称:</span>
-                                <span>{{ item.tasksetName }}</span>
+                                <span>{{ item.configName }}</span>
                             </div>
                             <div class="task-create-time">
                                 <span>任务生成时间:</span>
@@ -37,7 +38,7 @@
                             </div>
                             <div class="complete-patrol-area">
                                 <span>区域:</span>
-                                <span>{{ item.patrolArea }}</span>
+                                <span>{{ item.spaceName }}</span>
                             </div>
                             <div class="unfinished-patrol-area">
                                 <span>检查时间:</span>
@@ -45,33 +46,34 @@
                             </div>
                             <div class="taskset-number">
                                 <span>任务集编号:</span>
-                                <span>{{ item.tasksetNumber }}</span>
+                                <span>{{ item.configNumber }}</span>
                             </div>
-                            <div class="right-arrow-box" @click="problemRecordEvent">
+                            <div class="right-arrow-box" @click="problemRecordEvent(item)">
                                 <van-icon name="arrow" color="#1684FC" size="24" />
                             </div>
                         </div>
                     </div>
                 </van-tab>
                 <van-tab title="全部任务" name="allTask">
-                    <div class="backlog-task-list" v-for="(item,index) in taskList" :key="index">
+                    <van-empty description="暂无数据" v-show="allTaskOrderEmptyShow" />
+                    <div class="backlog-task-list" v-for="(item,index) in allTaskProblemOrderList" :key="index" v-show="!allTaskOrderEmptyShow">
                         <div class="backlog-task-top">
                             <div class="backlog-task-top-left">
                                 <span>任务编号</span>
                                 <span>{{ item.taskNumber }}</span>
                             </div>
                             <div class="backlog-task-top-right">
-                                <span :class="{'spanNoStartStyle': item.status == 1,'spanCompletedStyle': item.status == 3}">{{ taskStatusTransition(item.status) }}</span>
+                                <span :class="{'spanNoStartStyle': item.status == 1,'spanCompletedStyle': item.status == 4}">{{ taskStatusTransition(patrolTaskListMessage.state) }}</span>
                             </div>
                         </div>
                         <div class="backlog-task-content">
                             <div class="inspect-item">
                                 <span>巡查项:</span>
-                                <span>{{ item.tasksetName }}</span>
+                                <span>{{ item.itemName }}</span>
                             </div>
                             <div class="taskset-name">
                                 <span>任务集名称:</span>
-                                <span>{{ item.tasksetName }}</span>
+                                <span>{{ item.configName }}</span>
                             </div>
                             <div class="task-create-time">
                                 <span>任务生成时间:</span>
@@ -79,7 +81,7 @@
                             </div>
                             <div class="complete-patrol-area">
                                 <span>区域:</span>
-                                <span>{{ item.patrolArea }}</span>
+                                <span>{{ item.spaceName }}</span>
                             </div>
                             <div class="unfinished-patrol-area">
                                 <span>检查时间:</span>
@@ -87,9 +89,9 @@
                             </div>
                             <div class="taskset-number">
                                 <span>任务集编号:</span>
-                                <span>{{ item.tasksetNumber }}</span>
+                                <span>{{ item.configNumber }}</span>
                             </div>
-                            <div class="right-arrow-box" @click="problemRecordEvent">
+                            <div class="right-arrow-box" @click="problemRecordEvent(item)">
                                 <van-icon name="arrow" color="#1684FC" size="24" />
                             </div>
                         </div>
@@ -103,6 +105,7 @@
 <script>
 import NavBar from "@/components/NavBar";
 import { mapGetters, mapMutations } from "vuex";
+import {getCurrentTaskProblemWorkerOrder, getAllTaskProblemWorkerOrder} from '@/api/escortManagement.js'
 import {mixinsDeviceReturn} from '@/mixins/deviceReturnFunction';
 export default {
   name: "QuestionList",
@@ -114,64 +117,41 @@ export default {
     return {
       loadingShow: false,
       overlayShow: false,
+      currentTaskOrderEmptyShow: false,
+      allTaskOrderEmptyShow: false,
       activeName: 'currentTask',
       statusBackgroundPng: require("@/common/images/home/status-background.png"),
-      taskList: [
-        {
-            taskNumber: 'kx239230237829032780327',
-            tasksetName: '日常巡查',
-            taskCreateTime: '2022-10-14 00:00',
-            patrolArea: '体检科',
-            checkTime: '2022-10-14 00:00',
-            tasksetNumber: 'kx2392302',
-            status: 1
-
-        },
-        {
-            taskNumber: 'kx239230237829032780327',
-            tasksetName: '巡查1',
-            taskCreateTime: '2022-10-14 00:00',
-            patrolArea: '体检科',
-            checkTime: '2022-10-14 00:00',
-            tasksetNumber: 'kx2392302',
-            status: 3
-        },
-        {
-            taskNumber: 'kx239230237829032780327',
-            tasksetName: '日常巡查',
-            taskCreateTime: '2022-10-14 00:00',
-            patrolArea: '体检科',
-            checkTime: '2022-10-14 00:00',
-            tasksetNumber: 'kx2392302',
-            status: 2
-
-        },
-        {
-            taskNumber: 'kx239230237829032780327',
-            tasksetName: '巡查1',
-            taskCreateTime: '2022-10-14 00:00',
-            patrolArea: '体检科',
-            checkTime: '2022-10-14 00:00',
-            tasksetNumber: 'kx2392302',
-            status: 3
-        }
-      ]
+      currentTaskProblemOrderList: [],
+      allTaskProblemOrderList: []
     }
   },
 
   mounted() {
     // 控制设备物理返回按键
-    this.deviceReturn("/workOrderDetails")
+    this.deviceReturn("/workOrderDetails");
+    if (this.taskOrderType.taskTypeName) {
+        this.activeName = this.taskOrderType.taskTypeName;
+        if (this.activeName == 'currentTask') {
+            this.queryCurrentTaskProblemWorkerOrder(this.patrolTaskListMessage.id)
+        } else {
+            this.queryAllTaskProblemWorkerOrder({
+                proId: this.userInfo.hospitalList[0]['hospitalId'], // 项目id
+                workerId: this.userInfo.id
+            })  
+        }
+    } else {
+        this.queryCurrentTaskProblemWorkerOrder(this.patrolTaskListMessage.id)
+    }
   },
 
   watch: {},
 
   computed: {
-    ...mapGetters(["userInfo","enterProblemRecordMessage"])
+    ...mapGetters(["userInfo","enterProblemRecordMessage","patrolTaskListMessage","taskOrderType"])
   },
 
   methods: {
-    ...mapMutations(["changeEnterProblemRecordMessage"]),
+    ...mapMutations(["changeEnterProblemRecordMessage","changeTaskOrderType"]),
 
     // 任务状态转换
     taskStatusTransition (num) {
@@ -193,16 +173,90 @@ export default {
 
     // tab切换值变化事件
     vanTabsChangeEvent (value) {
-        console.log(value)
+        if (value == 'currentTask') {
+            this.queryCurrentTaskProblemWorkerOrder(this.patrolTaskListMessage.id)
+        } else {
+            this.queryAllTaskProblemWorkerOrder({
+                proId: this.userInfo.hospitalList[0]['hospitalId'], // 项目id
+		        workerId: this.userInfo.id
+            })
+        }
+    },
+
+    // 获取当前任务问题工单列表
+    queryCurrentTaskProblemWorkerOrder (taskId) {
+        this.loadingShow = true;
+        this.overlayShow = true;
+        this.currentTaskOrderEmptyShow = false;
+		getCurrentTaskProblemWorkerOrder(taskId).then((res) => {
+            this.loadingShow = false;
+            this.overlayShow = false;
+        if (res && res.data.code == 200) {
+           if (res.data.data.length > 0) {
+               this.currentTaskProblemOrderList = res.data.data
+           } else {
+                this.currentTaskOrderEmptyShow = true
+           }
+        } else {
+          this.$toast({
+            type: 'fail',
+            message: res.data.msg
+          })
+        }
+      })
+      .catch((err) => {
+        this.loadingShow = false;
+        this.overlayShow = false;
+        this.$toast({
+          type: 'fail',
+          message: err
+        })
+      })
+    },
+
+    // 获取所有任务问题工单列表
+    queryAllTaskProblemWorkerOrder (data) {
+        this.loadingShow = true;
+        this.overlayShow = true;
+        this.allTaskOrderEmptyShow = false;
+		getAllTaskProblemWorkerOrder(data).then((res) => {
+            this.loadingShow = false;
+            this.overlayShow = false;
+        if (res && res.data.code == 200) {
+           if (res.data.data.length > 0) {
+               this.allTaskProblemOrderList = res.data.data
+           } else {
+            this.allTaskOrderEmptyShow = true
+           }
+        } else {
+          this.$toast({
+            type: 'fail',
+            message: res.data.msg
+          })
+        }
+      })
+      .catch((err) => {
+        this.loadingShow = false;
+        this.overlayShow = false;
+        this.$toast({
+          type: 'fail',
+          message: err
+        })
+      })
     },
 
 
     // 点击进入问题记录页
-    problemRecordEvent () {
+    problemRecordEvent (item) {
         let temporaryInfo = this.enterProblemRecordMessage;
         temporaryInfo['isAllowOperation'] = false;
+        temporaryInfo['orderMessage'] = item;
         temporaryInfo['enterProblemRecordPageSource'] = '/questionList';
         this.changeEnterProblemRecordMessage(temporaryInfo);
+        // 保存切换类型
+        let temporaryMessage = this.taskOrderType;
+        temporaryMessage['taskTypeName'] = this.activeName;
+        this.changeTaskOrderType(temporaryMessage);
         this.$router.push('/problemRecord')
     }
   }
@@ -283,77 +337,87 @@ export default {
                 padding: 8px 4px 0px 4px;
                 box-sizing: border-box;
                 background: #f7f7f7;
-                overflow: auto;
-                .backlog-task-list {
-                    padding: 0 8px 4px 8px;
-                    box-sizing: border-box;
-                    border-radius: 6px;
-                    background: #fff;
-                    box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.23);
-                    margin-bottom: 10px;
-                    .backlog-task-top {
-                        height: 40px;
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        font-size: 14px;
-                        color: #1684FC;
-                        .bottom-border-1px(#BEC7D1);
-                        .backlog-task-top-left {
-                            flex: 1;
-                            .no-wrap()
-                        };
-                        .backlog-task-top-right {
-                            width: 70px;
-                            text-align: center;
-                            span {
-                                display: inline-block;
-                                width: 62px;
-                                height: 22px;
-                                text-align: center;
-                                line-height: 22px;
-                                background: #289E8E;
-                                color: #fff;
-                                border-radius: 6px;
-                            };
-                            .spanNoStartStyle {
-                                background: #174E97;
-                            };
-                            .spanCompletedStyle {
-                                background: #101010;
-                            }
-                        }
+                overflow: scroll;
+                .van-tab__pane {
+                    height: 100%;
+                    position: relative;
+                    .van-empty {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%,-50%)
                     };
-                    .backlog-task-content {
-                        position: relative;
-                        .right-arrow-box {
-                            position: absolute;
+                    .backlog-task-list {
+                        padding: 0 8px 4px 8px;
+                        box-sizing: border-box;
+                        border-radius: 6px;
+                        background: #fff;
+                        box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.23);
+                        margin-bottom: 10px;
+                        .backlog-task-top {
+                            height: 40px;
                             display: flex;
-                            justify-content: center;
+                            justify-content: space-between;
                             align-items: center;
-                            right: 8px;
-                            top: 50%;
-                            transform: translateY(-50%)
-                        };
-                        >div {
-                          line-height: 28px;
-                          word-break: break-all;
-                          font-size: 14px;
-                          color: #101010  
-                        };
-                        .inspect-item {
-                            color: #1684FC
-                        };
-                        .complete-patrol-area {
-                            >span {
+                            font-size: 14px;
+                            color: #1684FC;
+                            .bottom-border-1px(#BEC7D1);
+                            .backlog-task-top-left {
+                                flex: 1;
+                                .no-wrap()
+                            };
+                            .backlog-task-top-right {
+                                width: 70px;
+                                text-align: center;
+                                span {
+                                    display: inline-block;
+                                    width: 62px;
+                                    height: 22px;
+                                    text-align: center;
+                                    line-height: 22px;
+                                    background: #289E8E;
+                                    color: #fff;
+                                    border-radius: 6px;
+                                };
+                                .spanNoStartStyle {
+                                    background: #174E97;
+                                };
+                                .spanCompletedStyle {
+                                    background: #101010;
+                                }
                             }
                         };
-                        .unfinished-patrol-area {
-                             >span {
+                        .backlog-task-content {
+                            position: relative;
+                            .right-arrow-box {
+                                position: absolute;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                                right: 8px;
+                                top: 50%;
+                                transform: translateY(-50%)
+                            };
+                            >div {
+                            line-height: 28px;
+                            word-break: break-all;
+                            font-size: 14px;
+                            color: #101010  
+                            };
+                            .inspect-item {
+                                color: #1684FC
+                            };
+                            .complete-patrol-area {
+                                >span {
+                                }
+                            };
+                            .unfinished-patrol-area {
+                                >span {
+                                }
                             }
                         }
                     }
-                }
+                }    
             }
         }
     }

@@ -13,58 +13,43 @@
         <div class="content-box">
             <div class="location task-number">
                 <span>巡查项</span>
-                <span>医院</span>
+                <span>{{ checkItemName }}</span>
             </div>
             <div class="location">
                 <span>地点</span>
-                <span>2022-10-32 12:09</span>
+                <span>{{ spaceName }}</span>
             </div>
             <div class="location">
                 <span>时间</span>
-                <span>每天</span>
+                <span>{{ createTime }}</span>
             </div>
-            <div class="location issue-picture">
-                <div>问题拍照</div>
-                <div class="image-list">
-                    <img :src="item" alt="" v-for="(item,index) in echoProblemPicturesEchoList" :key="index" @click="enlareEvent(item)">
-                </div>
-            </div>
-            <div class="location problem-description">
-                <div>问题描述</div>
-                <div>{{ echoProblemDescription }}</div>
-            </div>
-            <div class="location remark">
-                <div>备注</div>
-                <div class="remark-content">
-                    {{ echoNote }}
-                </div>
-            </div>
-            <div class="location result-picture" v-show="enterProblemRecordMessage.isAllowOperation">
+            <div class="location result-picture">
                 <div>
                     问题拍照
                 </div>
                 <div class="image-list">
                 <div v-for="(item, index) in problemPicturesList" :key='index'>
                     <img :src="item" />
-                    <div class="icon-box" @click="issueDelete(index)">
+                    <div class="icon-box" @click="issueDelete(index)" v-show="enterProblemRecordMessage.isAllowOperation && patrolTaskListMessage.state !=4">
                         <van-icon
-                        name="delete"
-                        color="#d70000"
+                          name="delete"
+                          color="#d70000"
                         />
                     </div>
                 </div>
-                <div @click="issueClickEvent">
+                <div @click="issueClickEvent" v-show="enterProblemRecordMessage.isAllowOperation && patrolTaskListMessage.state !=4">
                     <van-icon name="plus" size="30" color="#101010" />
                 </div>
                 </div>
             </div>
-            <div class="location problem-description" v-show="enterProblemRecordMessage.isAllowOperation">
+            <div class="location problem-description">
                 <div>问题描述</div>
                 <div>
                     <van-field
                         v-model="problemDescription"
                         rows="2"
                         autosize
+                        :disabled="!enterProblemRecordMessage.isAllowOperation || patrolTaskListMessage.state == 4"
                         type="textarea"
                         maxlength="2000"
                         placeholder="请输入问题描述"
@@ -72,12 +57,13 @@
                     />
                 </div>
             </div>
-            <div class="location remark" v-show="enterProblemRecordMessage.isAllowOperation">
+            <div class="location remark">
                 <div>备注</div>
                 <div class="remark-content">
                     <van-field
                         v-model="note"
                         rows="2"
+                        :disabled="!enterProblemRecordMessage.isAllowOperation || patrolTaskListMessage.state == 4"
                         autosize
                         type="textarea"
                         maxlength="2000"
@@ -89,7 +75,7 @@
         </div>
     </div>
     <div class="task-operation-box">
-      <div class="task-no-complete" v-show="enterProblemRecordMessage.isAllowOperation" v-preventReClick="[sureEvent]">确 认</div>
+      <div class="task-no-complete" v-show="enterProblemRecordMessage.isAllowOperation && patrolTaskListMessage.state !=4" v-preventReClick="[sureEvent]">确 认</div>
     </div>
     <transition name="van-slide-up">
       <div class="choose-photo-box" v-show="photoBox">
@@ -99,7 +85,7 @@
         </div>
         <div class="photo-graph">
           <van-icon name="photograph" />
-          <input name="uploadImg2" id="demo2"  @change="previewFileTwo" type="file" accept="image/camera"/>拍照
+          <input name="uploadImg2" id="demo2"  @change="previewFileTwo" type="file" accept="image/camera" apture="camera"/>拍照
         </div>
         <div class="photo-cancel" @click="photoCancel">取消</div>
       </div>
@@ -121,6 +107,7 @@ import NavBar from "@/components/NavBar";
 import { mapGetters, mapMutations } from "vuex";
 import {mixinsDeviceReturn} from '@/mixins/deviceReturnFunction';
 import { compress } from "@/common/js/utils";
+import { problemWorkOrderUpload, getTaskProblemWorkerOrderDetails } from '@/api/escortManagement.js'
 import {getAliyunSign} from '@/api/login.js'
 import axios from 'axios'
 export default {
@@ -135,36 +122,51 @@ export default {
       loadingShow: false,
       photoBox: false,
       imgIndex: '',
+      checkItemName: '',
+      spaceName: '',
+      createTime: '',
       deleteInfoDialogShow: false,
-      echoProblemDescription: 'SJAKLSAJS1',
-      echoNote: 'DASADAD',
       problemDescription: '',
       note: '',
-      loadText: '更新中',
+      loadText: '加载中',
       statusBackgroundPng: require("@/common/images/home/status-background.png"),
       problemPicturesList: [],
       imgOnlinePathArr: [],
       imgBoxShow: false,
       isExpire: false,
       currentImgUrl: '',
-      temporaryFileArray: [],
-      echoProblemPicturesEchoList: [require("@/common/images/home/status-background.png"),require("@/common/images/home/status-background.png")]
+      temporaryFileArray: []
     }
   },
 
+  // beforeRouteEnter(to, from, next) {
+  //   next(vm=>{
+  //     if (from.path == '/questionList') {
+  //       //此页面进入时请求数据
+  //     }
+	//   });
+  //   next() 
+  // },
+
   mounted() {
+    console.log('何解析',this.enterProblemRecordMessage);
     // 控制设备物理返回按键
-    this.deviceReturn(`${this.enterProblemRecordMessage['enterProblemRecordPageSource']}`)
+    this.deviceReturn(`${this.enterProblemRecordMessage['enterProblemRecordPageSource']}`);
+    // 查询工单详情
+    this.queryTaskProblemWorkerOrderDetails({
+      resultId: !this.enterProblemRecordMessage['isAllowOperation'] ? this.enterProblemRecordMessage['orderMessage']['resultId'] : this.enterProblemRecordMessage['issueInfo']['resultId'], // 结果id
+      reportId: !this.enterProblemRecordMessage['isAllowOperation'] ? this.enterProblemRecordMessage['orderMessage']['reportId'] : this.enterProblemRecordMessage['issueInfo']['reportId'] // 问题工单id
+    })
   },
 
   watch: {},
 
   computed: {
-    ...mapGetters(["userInfo","enterProblemRecordMessage","ossMessage","timeMessage"])
+    ...mapGetters(["userInfo","enterProblemRecordMessage","ossMessage","timeMessage","departmentCheckList","patrolTaskListMessage","enterProblemRecordMessage"])
   },
 
   methods: {
-    ...mapMutations(["changeOssMessage","changeTimeMessage"]),
+    ...mapMutations(["changeOssMessage","changeTimeMessage","changeDepartmentCheckList"]),
 
     // 顶部导航左边点击事件
     onClickLeft () {
@@ -177,110 +179,157 @@ export default {
       this.imgBoxShow = true
     },
 
+    // 查询问题工单详情
+    queryTaskProblemWorkerOrderDetails (data) {
+      this.loadingShow = true;
+      this.overlayShow = true;
+      this.loadText = '加载中';
+      getTaskProblemWorkerOrderDetails(data).then((res) => {
+        this.loadingShow = false;
+        this.overlayShow = false;
+        if (res && res.data.code == 200) {
+          this.checkItemName = res.data.data.itemName;
+          this.spaceName = res.data.data.spaceName;
+          this.createTime = res.data.data.createTime;
+          this.problemPicturesList = res.data.data.imgPaths;
+          this.problemDescription = res.data.data['describe'];
+          this.note = res.data.data['remark']
+        } else {
+          this.$toast({
+            type: 'fail',
+            message: res.data.msg
+          })
+        }
+      })
+      .catch((err) => {
+        this.loadingShow = false;
+        this.overlayShow = false;
+        this.$toast({
+          type: 'fail',
+          message: err
+        })
+      })
+    },
+
     // 任务完成事件
-      async taskCompleteEvent () {
-        if (this.resultImgList.length == 0) {
-          this.$toast('结果图片不能为空');
-          return
-        };
-        if (!this.enterRemark) {
-          this.$toast('备注不能为空');
-          return
-        };
-        // 上传图片到阿里云服务器
-        if (this.resultImgList.length > 0) {
-          this.loadText ='提交中';
-          this.overlayShow = true;
-          this.loadingShow = true;
-          for (let imgI of this.temporaryFileArray) {
-            if (Object.keys(this.timeMessage).length > 0) {
-              // 判断签名信息是否过期
-              if (new Date().getTime()/1000 - this.timeMessage['expire']  >= -30) {
-                await this.getSign();
-                await this.uploadImageToOss(imgI)
-              } else {
-                await this.uploadImageToOss(imgI)
-              }
-            } else {
+    async sureEvent () {
+      if (this.problemPicturesList.length == 0) {
+        this.$toast('结果图片不能为空');
+        return
+      };
+      if (!this.note) {
+        this.$toast('备注不能为空');
+        return
+      };
+      if (this.problemPicturesList.length > 6) {
+        this.$toast('至多只能上传6张图片');
+        return
+      };
+      // 上传图片到阿里云服务器
+      if (this.problemPicturesList.length > 0) {
+        this.loadText ='提交中';
+        this.overlayShow = true;
+        this.loadingShow = true;
+        for (let imgI of this.temporaryFileArray) {
+          if (Object.keys(this.timeMessage).length > 0) {
+            // 判断签名信息是否过期
+            if (new Date().getTime()/1000 - this.timeMessage['expire']  >= -30) {
               await this.getSign();
               await this.uploadImageToOss(imgI)
+            } else {
+              await this.uploadImageToOss(imgI)
             }
-          };
-          cleaningManageTaskComplete({
-              id : this.cleanTaskDetails.id, // 任务id
-              state: this.cleanTaskDetails.state,
-              taskNumber: this.cleanTaskDetails.taskNumber, // 任务编号
-              completeRemark: this.enterRemark, // 任务完成备注
-              path: this.imgOnlinePathArr,
-              proId: this.userInfo.hospitalList.length == 1 ? this.userInfo.hospitalList[0]['hospitalId'] : this.chooseProject['value'], // 项目id
-              proName: this.userInfo.hospitalList.length == 1 ? this.userInfo.hospitalList[0]['hospitalName'] : this.chooseProject['text']  // 项目名称
-            })
-            .then((res) => {
-              this.overlayShow = false;
-              this.loadingShow = false;
-              if (res && res.data.code == 200) {
-                 this.$toast({
-                  message: '任务已完成',
-                  type: 'success'
-                });
-                this.$router.push({
-                  path: "/cleaningTask"
-                })
-              } else {
-                this.$toast({
-                  message: `${res.data.msg}`,
-                  type: 'fail'
-                })
-              }
-            })
-            .catch((err) => {
-              this.overlayShow = false;
-              this.loadingShow = false;
+          } else {
+            await this.getSign();
+            await this.uploadImageToOss(imgI)
+          }
+        };
+        // 上传问题工单
+        problemWorkOrderUpload({
+          resultId: this.enterProblemRecordMessage['issueInfo']['resultId'], // 检查项对应结果集id
+          describe: this.problemDescription, // 描述信息
+          remark: this.note, // 备注信息
+          workerId: this.userInfo.id, //当前登陆员工id
+          workerName: this.userInfo.name, //当前登陆员工姓名
+          reportMan: this.userInfo.name, //当前登陆员工姓名
+          depId: this.departmentCheckList.depId, // 当前科室id
+          depName: "敬佩是", // 当前科室名称
+          createId: this.userInfo.id, //当前登陆员工id
+          createName: this.userInfo.name, //当前登陆员工姓名
+          imgPaths: this.imgOnlinePathArr, //上传的问题图片路径集合
+          proId: this.userInfo.hospitalList[0]['hospitalId'], // 项目id
+          proName: this.userInfo.hospitalList[0]['hospitalName']  // 项目名称
+        })
+        .then((res) => {
+          this.overlayShow = false;
+          this.loadingShow = false;
+          if (res && res.data.code == 200) {
               this.$toast({
-                message: `${err}`,
-                type: 'fail'
-              })
+              message: '上传成功',
+              type: 'success'
+            });
+            // 更改该检查项选中状态
+            let tempraryMessage = deepClone(this.departmentCheckList);
+            tempraryMessage['checkItemList'][this.enterProblemRecordMessage['index']]['checkResult'] = '3';
+            this.changeDepartmentCheckList(tempraryMessage)
+            this.$router.push({
+              path: "/areaPatrolDetails"
             })
-        }
-      },
+          } else {
+            this.$toast({
+              message: `${res.data.msg}`,
+              type: 'fail'
+            })
+          }
+        })
+        .catch((err) => {
+          this.overlayShow = false;
+          this.loadingShow = false;
+          this.$toast({
+            message: `${err}`,
+            type: 'fail'
+          })
+        })
+      }
+    },
 
     // 获取阿里云签名接口
     getSign (filePath = '') {
-        return new Promise((resolve, reject) => {
-            getAliyunSign().then((res) => {
-                if (res && res.data.code == 200) {
-                    // 存储签名信息
-                    this.changeOssMessage(res.data.data);
-                    let temporaryTimeInfo = {};
-                    temporaryTimeInfo['expire'] = Number(res.data.data.expire);
-                    // 存储过期时间信息
-                    this.changeTimeMessage(temporaryTimeInfo);
-                    if (this.isExpire) {
-                        this.uploadImageToOss(filePath)
-                    };
-                    this.isExpire = false;
-                    resolve()
-                } else {
-                    this.$toast({
-                        message: `${res.data.data.msg}`,
-                        type: 'fail'
-                    });
-                    reject()
-                }
-            })
-            .catch((err) => {
-                this.$toast({
-                    message: `${res.data.data.msg}`,
-                    type: 'fail'
-                });
-                reject()
-            })
-        })	
+      return new Promise((resolve, reject) => {
+        getAliyunSign().then((res) => {
+          if (res && res.data.code == 200) {
+            // 存储签名信息
+            this.changeOssMessage(res.data.data);
+            let temporaryTimeInfo = {};
+            temporaryTimeInfo['expire'] = Number(res.data.data.expire);
+            // 存储过期时间信息
+            this.changeTimeMessage(temporaryTimeInfo);
+            if (this.isExpire) {
+              this.uploadImageToOss(filePath)
+            };
+            this.isExpire = false;
+            resolve()
+          } else {
+            this.$toast({
+              message: `${res.data.data.msg}`,
+              type: 'fail'
+            });
+            reject()
+          }
+        })
+        .catch((err) => {
+          this.$toast({
+            message: `${res.data.data.msg}`,
+            type: 'fail'
+          });
+          reject()
+        })
+      })	
     },
     
     // 上传图片到阿里云服务器
     uploadImageToOss (filePath) {
-        return new Promise((resolve, reject) => {
+      return new Promise((resolve, reject) => {
         // OSS地址
         const aliyunServerURL = this.ossMessage.host;
         // 存储路径(后台固定位置+随即数+文件格式)
@@ -299,113 +348,109 @@ export default {
         formData.append('Signature',signature);
         formData.append('file',filePath);
         axios({
-            url: aliyunServerURL,
-            method: 'post',
-            data: formData,
-            headers: {'Content-Type': 'multipart/form-data'}
+          url: aliyunServerURL,
+          method: 'post',
+          data: formData,
+          headers: {'Content-Type': 'multipart/form-data'}
         }).then((res) => {
-            this.imgOnlinePathArr.push(`${aliyunServerURL}/${aliyunFileKey}`);
-            resolve();
-            console.log(this.imgOnlinePathArr);
+          this.imgOnlinePathArr.push(`${aliyunServerURL}/${aliyunFileKey}`);
+          resolve();
+          console.log(this.imgOnlinePathArr);
         })
         .catch((err) => {
-            reject()
+          reject()
         })
-        })
+      })
     },
 
 
     // 图片上传预览
-      previewFileOne() {
-        let file = document.getElementById("demo1").files[0];
-        this.temporaryFile = file;
-        let _this = this;
-        let reader = new FileReader();
-        let isLt2M = file.size/1024/1024 < 16;
-        if (!isLt2M) {
-          this.$dialog.alert({
-            message: '上传图片大小不能超过16MB!',
-            closeOnPopstate: true
-          }).then(() => {
-          });
-          return
-        };  
-        reader.addEventListener("load", function () {
-          // 压缩图片
-          let result = reader.result;
-          let img = new Image();
-          img.src = result;
-          img.onload = function () {
-            let src = compress(img);
-            _this.problemPicturesList.push(src);
-            _this.temporaryFileArray.push(file);
-            _this.photoBox = false;
-            _this.overlayShow = false
-          }
-        }, false);
-        if (file) {
-          reader.readAsDataURL(file);
-        };
-      },
+    previewFileOne() {
+      let file = document.getElementById("demo1").files[0];
+      this.temporaryFile = file;
+      let _this = this;
+      let reader = new FileReader();
+      let isLt2M = file.size/1024/1024 < 16;
+      if (!isLt2M) {
+        this.$dialog.alert({
+          message: '上传图片大小不能超过16MB!',
+          closeOnPopstate: true
+        }).then(() => {
+        });
+        return
+      };  
+      reader.addEventListener("load", function () {
+        // 压缩图片
+        let result = reader.result;
+        let img = new Image();
+        img.src = result;
+        img.onload = function () {
+          let src = compress(img);
+          _this.problemPicturesList.push(src);
+          _this.temporaryFileArray.push(file);
+          _this.photoBox = false;
+          _this.overlayShow = false
+        }
+      }, false);
+      if (file) {
+        reader.readAsDataURL(file);
+      };
+    },
 
-      //拍照预览
-      previewFileTwo() {
-        let file = document.getElementById("demo2").files[0];
-        let _this = this;
-        let reader = new FileReader();
-        let isLt2M = file.size/1024/1024 < 16;
-        if (!isLt2M) {
-          _this.$dialog.alert({
-            message: '上传图片大小不能超过16MB!',
-            closeOnPopstate: true
-          }).then(() => {
-          });
-          return
-        };  
-        reader.addEventListener("load", function () {
-          // 压缩图片
-          let result = reader.result;
-          let img = new Image();
-          img.src = result;
-          img.onload = function () {
-            let src = compress(img);
-            _this.problemPicturesList.push(src);
-            _this.temporaryFileArray.push(file);
-            _this.photoBox = false;
-            _this.overlayShow = false
-          }
-        }, false);
-        if (file) {
-          reader.readAsDataURL(file);
-        };
-      },
+    //拍照预览
+    previewFileTwo() {
+      let file = document.getElementById("demo2").files[0];
+      let _this = this;
+      let reader = new FileReader();
+      let isLt2M = file.size/1024/1024 < 16;
+      if (!isLt2M) {
+        _this.$dialog.alert({
+          message: '上传图片大小不能超过16MB!',
+          closeOnPopstate: true
+        }).then(() => {
+        });
+        return
+      };  
+      reader.addEventListener("load", function () {
+        // 压缩图片
+        let result = reader.result;
+        let img = new Image();
+        img.src = result;
+        img.onload = function () {
+          let src = compress(img);
+          _this.problemPicturesList.push(src);
+          _this.temporaryFileArray.push(file);
+          _this.photoBox = false;
+          _this.overlayShow = false
+        }
+      }, false);
+      if (file) {
+        reader.readAsDataURL(file);
+      };
+    },
 
     // 拍照点击
     issueClickEvent () {
-        this.photoBox = true;
-        this.overlayShow = true
+      this.photoBox = true;
+      this.overlayShow = true
     },
 
     // 拍照照片删除
     issueDelete (index) {
-    this.deleteInfoDialogShow = true;
-    this.imgIndex = index
+      this.deleteInfoDialogShow = true;
+      this.imgIndex = index
     },
 
     // 确定删除提示框确定事件
     sureDeleteEvent () {
-    this.problemPicturesList.splice(this.imgIndex, 1);
-    this.temporaryFileArray.splice(this.imgIndex, 1)
+      this.problemPicturesList.splice(this.imgIndex, 1);
+      this.temporaryFileArray.splice(this.imgIndex, 1)
     },
 
     // 拍照取消
     photoCancel () {
       this.photoBox = false;
       this.overlayShow = false
-    },
-
-    // 确认事件
-    sureEvent () {
     }
   }
 };
@@ -529,6 +574,12 @@ export default {
         }
     }
   };
+  /deep/ .van-loading {
+    z-index: 10000 !important
+  };
+  /deep/.van-overlay {
+    z-index: 1000 !important
+  };
   .content {
     flex: 1;
     display: flex;
@@ -582,34 +633,6 @@ export default {
                 padding-left: 8px;
                 box-sizing: border-box;
                 word-break: break-all
-                }
-            }
-        };
-        .issue-picture {
-            padding: 14px 8px;
-            margin-bottom: 6px;
-            box-sizing: border-box;
-            display: flex;
-            background: #fff;
-            justify-content: space-between;
-            >div {
-                font-size: 14px;
-                color: #101010;
-                &:first-child {
-
-                };
-                &:last-child {
-                    flex: 1;
-                    margin-left: 8px;
-                    >img {
-                        width: 31%;
-                        height: 80px;
-                        margin-right: 2%;
-                        margin-bottom: 6px;
-                        &:nth-child(3n+3) {
-                            margin-right: 0
-                        }
-                    }
                 }
             }
         };

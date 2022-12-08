@@ -13,7 +13,7 @@
         <div class="content-box">
             <div class="current-area">
                 <van-icon name="location" color="#1684FC" />
-                <span>当前区域: 体检科</span>
+                <span>当前区域: {{ patrolTaskListMessage.needSpaces.filter((item)=> { return item.id == departmentCheckList['depId'] })[0]['name'] }}</span>
             </div>
             <div class="patrol-item-box">
                 <div class="patrol-item-list" v-for="(item, index) in departmentCheckList.checkItemList" :key="index">
@@ -23,12 +23,12 @@
                     </div>
                     <div class="patrol-item-list-right">
                         <van-radio-group v-model="item.checkResult" direction="horizontal">
-                            <van-radio name="0" @click="(event) => passEvent(event,item,index)">
+                            <van-radio name="1" @click="(event) => passEvent(event,item,index)">
                                 <template #icon="props">
                                     <img class="img-icon" :src="props.checked ? checkCheckboxPng : checkboxPng" />
                                 </template>
                             </van-radio>
-                            <van-radio name="2" @click="(event) => noPassEvent(event,item,index)">
+                            <van-radio name="3" @click="(event) => noPassEvent(event,item,index)">
                                 <template #icon="props">
                                     <img class="img-icon" :src="props.checked ? checkCloseCirclePng : closeCirclePng" />
                                 </template>
@@ -36,10 +36,11 @@
                         </van-radio-group>
                     </div>
                 </div>
+                <van-empty description="暂无数据" v-show="departmentCheckList.checkItemList.length == 0" />
             </div>
         </div>
     </div>
-    <div class="task-operation-box">
+    <div class="task-operation-box" v-show="departmentCheckList.checkItemList.length > 0">
       <div class="task-complete" v-preventReClick="[sureEvent]">确 认</div>
     </div>
   </div>
@@ -59,6 +60,7 @@ export default {
   data() {
     return {
       overlayShow: false,
+      radioValue: 1,
       loadingShow: false,
       loadText: '加载中',
       statusBackgroundPng: require("@/common/images/home/status-background.png"),
@@ -71,7 +73,15 @@ export default {
 
   mounted() {
     // 控制设备物理返回按键
-    this.deviceReturn('/workOrderDetails')
+    this.deviceReturn('/workOrderDetails');
+    // 判断该区域是否存在检查项
+    if (this.departmentCheckList.checkItemList.length == 0) {
+      this.$toast({
+        type: 'fail',
+        message: '该科室不存在巡查项!'
+      });
+      setTimeout(() =>{ this.$router.push({path: '/workOrderDetails'}) },2000)
+    }
   },
 
   // activated () {
@@ -105,6 +115,10 @@ export default {
 
     // 通过事件
     passEvent (event,item,index) {
+      // 已完成的任务不可操作
+      if (this.patrolTaskListMessage.state == 4) {
+        return
+      };
       this.loadingShow = true;
       this.overlayShow = true;
       this.loadText = '提交中';
@@ -114,12 +128,13 @@ export default {
           this.overlayShow = false;
           this.$toast({
             type: 'success',
-            message: '提交成功'
+            message: '反馈成功'
           });
           // 更改该检查项选中状态
           let tempraryMessage = deepClone(this.departmentCheckList);
-          tempraryMessage['checkItemList'][index]['checkResult'] = 0;
-          this.changeDepartmentCheckList(tempraryMessage)
+          tempraryMessage['checkItemList'][index]['checkResult'] = '1';
+          this.changeDepartmentCheckList(tempraryMessage);
+          console.log('飒飒',this.departmentCheckList);
         } else {
           this.$toast({
             type: 'fail',
@@ -148,17 +163,15 @@ export default {
           this.overlayShow = false;
           this.$toast({
             type: 'success',
-            message: '提交成功'
+            message: '反馈成功'
           });
           //保存进入问题记录页的相关信息
           let temporaryInfo = this.enterProblemRecordMessage;
           temporaryInfo['isAllowOperation'] = true;
           temporaryInfo['enterProblemRecordPageSource'] = '/areaPatrolDetails';
+          temporaryInfo['issueInfo'] = item;
+          temporaryInfo['index'] = index; 
           this.changeEnterProblemRecordMessage(temporaryInfo);
-          // 更改该检查项选中状态
-          let tempraryMessage = deepClone(this.departmentCheckList);
-          tempraryMessage['checkItemList'][index]['checkResult'] = 2;
-          this.changeDepartmentCheckList(tempraryMessage)
           this.$router.push({path: '/problemRecord'})
         } else {
           this.$toast({
@@ -290,6 +303,13 @@ export default {
             flex: 1;
             width: 100%;
             overflow: auto;
+            position: relative;
+            .van-empty {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%,-50%)
+            };
             .patrol-item-list {
                 padding: 16px 10px;
                 box-sizing: border-box;

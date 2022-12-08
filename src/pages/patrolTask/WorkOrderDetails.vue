@@ -32,17 +32,17 @@
             </div>
             <div class="patrol-site">
                 <div>巡查地点</div>
-                <div class="patrol-site-list-box">
-                    <div class="patrol-site-list" :class="{'patrolSiteListStyle': patrolTaskListMessage.hasArray.indexOf(item) > -1 }" v-for="(item,index) in patrolTaskListMessage.needArray" :key="index" @click="patrolSiteEvent">
-                        {{ item }}
+                <div class="patrol-site-list-box" v-if="queryDataSuccess">
+                    <div class="patrol-site-list" :class="{'patrolSiteListStyle': patrolTaskListMessage.hasArray.indexOf(item.name) > -1 }" v-for="(item,index) in patrolTaskListMessage.needSpaces" :key="index" @click="patrolSiteEvent(item)">
+                      {{ item.name }}
                     </div>
                 </div>
             </div>
         </div>
     </div>
     <div class="task-operation-box">
-      <div class="task-no-complete" @click="viewProblemItemsEvent">查看问题项</div>
-      <div class="task-complete" @click="completeTaskEvent">完成任务</div>
+      <div class="task-no-complete" :class="{'operationStyle': patrolTaskListMessage.state == 4 }" @click="viewProblemItemsEvent">查看问题项</div>
+      <div class="task-complete" v-show="patrolTaskListMessage.state !=4 " @click="completeTaskEvent">完成任务</div>
     </div>
   </div>
 </template>
@@ -61,12 +61,14 @@ export default {
     return {
       overlayShow: false,
       loadingShow: false,
+      queryDataSuccess: false,
       loadText: '加载中',
       statusBackgroundPng: require("@/common/images/home/status-background.png")
     }
   },
 
   mounted() {
+    console.log('大飒飒',this.patrolTaskListMessage);
     // 控制设备物理返回按键
     this.deviceReturn("/workOrderDetails");
     // 获取任务详情
@@ -95,9 +97,41 @@ export default {
       this.$router.push({path: '/patrolTasklist'})
     },
 
-    // 巡查地点事件
-    patrolSiteEvent () {
-      this.$router.push({path: '/areaPatrolDetails'})
+    // 巡查地点点击事件
+    patrolSiteEvent (item) {
+      this.loadingShow = true;
+      this.overlayShow = true;
+      departmentScanCode({
+        taskId: this.patrolTaskListMessage.id, //当前任务id
+        depId: item.id, // 当前科室id
+        workerId: this.userInfo.id // 当前登陆员工id
+      }).then((res) => {
+        if (res && res.data.code == 200) {
+          this.loadingShow = false;
+          this.overlayShow = false;
+          let temporaryMessage = this.departmentCheckList;
+          temporaryMessage['depId'] = item.id;
+          temporaryMessage['checkItemList'] = res.data.data;
+          temporaryMessage['checkItemList'].forEach(item => {
+            item['checkResult'] = item['checkResult'].toString()
+          });
+          this.changeDepartmentCheckList(temporaryMessage);
+          this.$router.push({path: '/areaPatrolDetails'})
+        } else {
+          this.$toast({
+            type: 'fail',
+            message: res.data.msg
+          })
+        }
+      })
+      .catch((err) => {
+        this.loadingShow = false;
+        this.overlayShow = false;
+        this.$toast({
+          type: 'fail',
+          message: err
+        })
+      })
     },
 
     // 查看问题项事件
@@ -107,6 +141,13 @@ export default {
 
     // 完成任务事件
     completeTaskEvent () {
+      if (this.patrolTaskListMessage['noFinishSpacesCount'] != 0) {
+        this.$toast({
+          type: 'fail',
+          message: '请完成所有巡查区域!'
+        });
+        return
+      };
       this.$router.push({path: '/workOrderElectronicSignature'})
     },
 
@@ -124,6 +165,7 @@ export default {
     queryTaskDetails () {
       this.loadingShow = true;
       this.overlayShow = true;
+      this.queryDataSuccess = false;
       this.loadText = '加载中';
       getTaskDetails(
         this.patrolTaskListMessage.id
@@ -132,6 +174,7 @@ export default {
           console.log(res.data.data);
           this.loadingShow = false;
           this.overlayShow = false;
+          this.queryDataSuccess = true;
           this.changePatrolTaskListMessage(res.data.data)
         } else {
           this.$toast({
@@ -166,6 +209,9 @@ export default {
           let temporaryMessage = this.departmentCheckList;
           temporaryMessage['depId'] = depId;
           temporaryMessage['checkItemList'] = res.data.data;
+          temporaryMessage['checkItemList'].forEach(item => {
+            item['checkResult'] = item['checkResult'].toString()
+          });
           this.changeDepartmentCheckList(temporaryMessage);
           this.$router.push({path: '/areaPatrolDetails'})
         } else {
@@ -279,6 +325,9 @@ export default {
         }
     }
   };
+  /deep/ .van-loading {
+    z-index: 1000000
+  };
   .content {
     flex: 1;
     display: flex;
@@ -379,6 +428,12 @@ export default {
     align-items: center;
     justify-content: center;
     background: #fff;
+    .operationStyle {
+      background: linear-gradient(to right, #6cd2f8, #2390fe) !important;
+      box-shadow: 0px 2px 6px 0px rgba(36, 149, 213, 1) !important;
+      color: #fff !important;
+      border: none !important
+    };
     >div {
       width: 40%;
       height: 48px;

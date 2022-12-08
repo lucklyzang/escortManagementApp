@@ -16,6 +16,7 @@ export function getDefaultLoginState() {
 export function getDefaultEscortManagementState() {
     return {
         taskType: {}, //任务类型
+        taskOrderType: {}, //任务工单类型
         departmentCheckList: {
             depId: '',
             checkItemList: []

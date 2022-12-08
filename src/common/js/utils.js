@@ -276,7 +276,7 @@ export const checkEmptyArray = (currentArr) => {
 }
 
 /* 
- * Base64编码转换图片
+ * Base64编码转换为file对象
  * @param{String} dataurl base编码字符串
  * @param{String} filename 文件名称
  */

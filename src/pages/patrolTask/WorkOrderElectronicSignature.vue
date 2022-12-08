@@ -21,6 +21,7 @@ import ElectronicSignature from '@/components/ElectronicSignature'
 import { mapGetters, mapMutations } from "vuex";
 import { taskComplete } from '@/api/escortManagement.js'
 import {getAliyunSign} from '@/api/login.js'
+import { base64ImgtoFile } from '@/common/js/utils'
 import {mixinsDeviceReturn} from '@/mixins/deviceReturnFunction';
 import axios from 'axios'
 export default {
@@ -150,7 +151,7 @@ export default {
       // OSS地址
       const aliyunServerURL = this.ossMessage.host;
       // 存储路径(后台固定位置+随即数+文件格式)
-      const aliyunFileKey = this.ossMessage.dir + new Date().getTime() + Math.floor(Math.random() * 100) + filePath.name;
+      const aliyunFileKey = this.ossMessage.dir + new Date().getTime() + Math.floor(Math.random() * 100) + base64ImgtoFile(filePath).name;
       // 临时AccessKeyID0
       const OSSAccessKeyId = this.ossMessage.accessId;
       // 加密策略
@@ -163,7 +164,7 @@ export default {
       formData.append('OSSAccessKeyId',OSSAccessKeyId);
       formData.append('success_action_status','200');
       formData.append('Signature',signature);
-      formData.append('file',filePath);
+      formData.append('file',base64ImgtoFile(filePath));
       axios({
           url: aliyunServerURL,
           method: 'post',

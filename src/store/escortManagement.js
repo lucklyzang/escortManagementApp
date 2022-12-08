@@ -16,6 +16,10 @@ export default {
             return state.taskType
         },
 
+        taskOrderType: (state) => {
+            return state.taskOrderType
+        },
+
         currentElectronicSignature: (state) => {
             return state.currentElectronicSignature
         },
@@ -62,6 +66,11 @@ export default {
         // 保存任务切换类型
         changeTaskType (state, payLoad) {
             state.taskType = payLoad
+        },
+
+        // 保存任务工单列表切换类型
+        changeTaskOrderType (state, payLoad) {
+            state.taskOrderType = payLoad
         },
 
         //重置陪护管理状态
