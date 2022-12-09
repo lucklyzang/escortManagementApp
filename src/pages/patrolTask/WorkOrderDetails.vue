@@ -49,7 +49,7 @@
 <script>
 import NavBar from "@/components/NavBar";
 import { mapGetters, mapMutations } from "vuex";
-import {getTaskDetails,departmentScanCode} from '@/api/escortManagement.js'
+import {getTaskDetails, departmentScanCode, departmentScanCodeFinsh} from '@/api/escortManagement.js'
 import {mixinsDeviceReturn} from '@/mixins/deviceReturnFunction';
 export default {
   name: "WorkOrderDetails",
@@ -99,39 +99,15 @@ export default {
 
     // 巡查地点点击事件
     patrolSiteEvent (item) {
-      this.loadingShow = true;
-      this.overlayShow = true;
-      departmentScanCode({
-        taskId: this.patrolTaskListMessage.id, //当前任务id
-        depId: item.id, // 当前科室id
-        workerId: this.userInfo.id // 当前登陆员工id
-      }).then((res) => {
-        if (res && res.data.code == 200) {
-          this.loadingShow = false;
-          this.overlayShow = false;
-          let temporaryMessage = this.departmentCheckList;
-          temporaryMessage['depId'] = item.id;
-          temporaryMessage['checkItemList'] = res.data.data;
-          temporaryMessage['checkItemList'].forEach(item => {
-            item['checkResult'] = item['checkResult'].toString()
-          });
-          this.changeDepartmentCheckList(temporaryMessage);
-          this.$router.push({path: '/areaPatrolDetails'})
-        } else {
-          this.$toast({
-            type: 'fail',
-            message: res.data.msg
-          })
-        }
-      })
-      .catch((err) => {
-        this.loadingShow = false;
-        this.overlayShow = false;
-        this.$toast({
-          type: 'fail',
-          message: err
-        })
-      })
+      // if (this.patrolTaskListMessage.hasArray.indexOf(item.name) == -1) {
+      //   return
+      // };
+     // 任务已完成
+      if (this.patrolTaskListMessage.state == 4) {
+        this.codeDepartmentFinsh(item.id,'加载中')
+      } else {
+        this.codeDepartmentNoFinsh(item.id,'加载中')
+      }
     },
 
     // 查看问题项事件
@@ -141,7 +117,7 @@ export default {
 
     // 完成任务事件
     completeTaskEvent () {
-      if (this.patrolTaskListMessage['noFinishSpacesCount'] != 0) {
+      if (this.patrolTaskListMessage['needArray'].length > 0) {
         this.$toast({
           type: 'fail',
           message: '请完成所有巡查区域!'
@@ -193,11 +169,11 @@ export default {
       })
     },
 
-    // 扫码科室
-    codeDepartment (depId) {
+    // 任务未完成扫码
+    codeDepartmentNoFinsh (depId,text) {
       this.loadingShow = true;
       this.overlayShow = true;
-      this.loadText = '校验中';
+      this.loadText = text;
       departmentScanCode({
         taskId: this.patrolTaskListMessage.id, //当前任务id
         depId, // 当前扫描科室id
@@ -231,6 +207,54 @@ export default {
       })
     },
 
+    // 任务完成扫码
+    codeDepartmentFinsh (depId,text) {
+      this.loadingShow = true;
+      this.overlayShow = true;
+      this.loadText = text;
+      departmentScanCodeFinsh({
+        taskId: this.patrolTaskListMessage.id, //当前任务id
+        depId, // 当前扫描科室id
+        workerId: this.userInfo.id // 当前登陆员工id
+      }).then((res) => {
+        if (res && res.data.code == 200) {
+          this.loadingShow = false;
+          this.overlayShow = false;
+          let temporaryMessage = this.departmentCheckList;
+          temporaryMessage['depId'] = depId;
+          temporaryMessage['checkItemList'] = res.data.data;
+          temporaryMessage['checkItemList'].forEach(item => {
+            item['checkResult'] = item['checkResult'].toString()
+          });
+          this.changeDepartmentCheckList(temporaryMessage);
+          this.$router.push({path: '/areaPatrolDetails'})
+        } else {
+          this.$toast({
+            type: 'fail',
+            message: res.data.msg
+          })
+        }
+      })
+      .catch((err) => {
+        this.loadingShow = false;
+        this.overlayShow = false;
+        this.$toast({
+          type: 'fail',
+          message: err
+        })
+      })
+    },
+
+    // 扫码科室校验
+    codeDepartment (depId) {
+      // 任务已完成
+      if (this.patrolTaskListMessage.state == 4) {
+        this.codeDepartmentFinsh(depId,'校验中')
+      } else {
+        this.codeDepartmentNoFinsh(depId,'校验中')
+      }
+    },
+
     // 摄像头取消扫码后的回调
     scanQRcodeCallbackCanceled () {
     },
@@ -251,27 +275,6 @@ export default {
       }
     },
 
-    // 任务状态转换
-    stausTransfer (num) {
-      switch(num) {
-        case 1:
-          return '未开始'
-          break;
-        case 2:
-          return '进行中'
-          break;
-        case 3:
-          return '复核中'
-          break;
-        case 4:
-          return '已完成'
-          break;
-        case 5:
-          return '已复核'
-          break
-      } 
-    },
-
     // 任务集类型转换
     taskSetTransition (num) {
       switch(num) {
@@ -288,7 +291,7 @@ export default {
           return '节假日和周末'
           break;
       }
-    },
+    }
   }
 };
 </script>

@@ -29,8 +29,8 @@
                 </div>
                 <div class="image-list">
                 <div v-for="(item, index) in problemPicturesList" :key='index'>
-                    <img :src="item" />
-                    <div class="icon-box" @click="issueDelete(index)" v-show="enterProblemRecordMessage.isAllowOperation && patrolTaskListMessage.state !=4">
+                    <img :src="item" @click="enlareEvent(item)" />
+                    <div class="icon-box" @click="issueDelete(index,item)" v-show="enterProblemRecordMessage.isAllowOperation && patrolTaskListMessage.state !=4">
                         <van-icon
                           name="delete"
                           color="#d70000"
@@ -106,8 +106,8 @@
 import NavBar from "@/components/NavBar";
 import { mapGetters, mapMutations } from "vuex";
 import {mixinsDeviceReturn} from '@/mixins/deviceReturnFunction';
-import { compress } from "@/common/js/utils";
-import { problemWorkOrderUpload, getTaskProblemWorkerOrderDetails } from '@/api/escortManagement.js'
+import { compress, deepClone } from "@/common/js/utils";
+import { problemWorkOrderUpload, getTaskProblemWorkerOrderDetails,departmentScanCode } from '@/api/escortManagement.js'
 import {getAliyunSign} from '@/api/login.js'
 import axios from 'axios'
 export default {
@@ -122,6 +122,8 @@ export default {
       loadingShow: false,
       photoBox: false,
       imgIndex: '',
+      imgDeleteUrlArr: [],
+      imgDeleteUrl: '',
       checkItemName: '',
       spaceName: '',
       createTime: '',
@@ -129,6 +131,7 @@ export default {
       problemDescription: '',
       note: '',
       loadText: '加载中',
+      existOnlineImgPath: [],
       statusBackgroundPng: require("@/common/images/home/status-background.png"),
       problemPicturesList: [],
       imgOnlinePathArr: [],
@@ -153,10 +156,15 @@ export default {
     // 控制设备物理返回按键
     this.deviceReturn(`${this.enterProblemRecordMessage['enterProblemRecordPageSource']}`);
     // 查询工单详情
-    this.queryTaskProblemWorkerOrderDetails({
-      resultId: !this.enterProblemRecordMessage['isAllowOperation'] ? this.enterProblemRecordMessage['orderMessage']['resultId'] : this.enterProblemRecordMessage['issueInfo']['resultId'], // 结果id
-      reportId: !this.enterProblemRecordMessage['isAllowOperation'] ? this.enterProblemRecordMessage['orderMessage']['reportId'] : this.enterProblemRecordMessage['issueInfo']['reportId'] // 问题工单id
-    })
+    // 上报问题工单后才存在reportId
+    if (this.enterProblemRecordMessage['issueInfo'] && this.enterProblemRecordMessage['issueInfo'].hasOwnProperty('reportId') && this.enterProblemRecordMessage['issueInfo']['reportId']) {
+      this.queryTaskProblemWorkerOrderDetails({
+        resultId: !this.enterProblemRecordMessage['isAllowOperation'] ? this.enterProblemRecordMessage['orderMessage']['resultId'] : this.enterProblemRecordMessage['issueInfo']['resultId'], // 结果id
+        reportId: !this.enterProblemRecordMessage['isAllowOperation'] ? this.enterProblemRecordMessage['orderMessage']['reportId'] : this.enterProblemRecordMessage['issueInfo']['reportId'] // 问题工单id
+      })
+    } else {
+      this.echoWorkOrderMessage()
+    }
   },
 
   watch: {},
@@ -179,6 +187,18 @@ export default {
       this.imgBoxShow = true
     },
 
+    // 回显工单信息
+    echoWorkOrderMessage () {
+      if (this.enterProblemRecordMessage['isAllowOperation']) {
+        this.checkItemName = this.enterProblemRecordMessage['issueInfo']['name'];
+        this.spaceName = this.patrolTaskListMessage.needSpaces.filter((item)=> { return item.id == this.departmentCheckList['depId'] })[0]['name']
+      } else {
+        this.checkItemName = this.enterProblemRecordMessage['orderMessage']['itemName'];
+        this.spaceName = this.enterProblemRecordMessage['orderMessage']['spaceName']
+      };
+      this.createTime = this.patrolTaskListMessage['createTime']
+    },
+
     // 查询问题工单详情
     queryTaskProblemWorkerOrderDetails (data) {
       this.loadingShow = true;
@@ -191,7 +211,8 @@ export default {
           this.checkItemName = res.data.data.itemName;
           this.spaceName = res.data.data.spaceName;
           this.createTime = res.data.data.createTime;
-          this.problemPicturesList = res.data.data.imgPaths;
+          this.problemPicturesList = deepClone(res.data.data.imgPaths);
+          this.existOnlineImgPath = deepClone(res.data.data.imgPaths);
           this.problemDescription = res.data.data['describe'];
           this.note = res.data.data['remark']
         } else {
@@ -215,6 +236,10 @@ export default {
     async sureEvent () {
       if (this.problemPicturesList.length == 0) {
         this.$toast('结果图片不能为空');
+        return
+      };
+      if (!this.problemDescription) {
+        this.$toast('问题描述不能为空');
         return
       };
       if (!this.note) {
@@ -254,9 +279,10 @@ export default {
           reportMan: this.userInfo.name, //当前登陆员工姓名
           depId: this.departmentCheckList.depId, // 当前科室id
           depName: "敬佩是", // 当前科室名称
+          id: this.enterProblemRecordMessage.id ? this.enterProblemRecordMessage.id : null,
           createId: this.userInfo.id, //当前登陆员工id
           createName: this.userInfo.name, //当前登陆员工姓名
-          imgPaths: this.imgOnlinePathArr, //上传的问题图片路径集合
+          imgPaths: this.imgOnlinePathArr.concat(this.existOnlineImgPath), //上传的问题图片路径集合(合并回显已上传到阿里云的图片地址)
           proId: this.userInfo.hospitalList[0]['hospitalId'], // 项目id
           proName: this.userInfo.hospitalList[0]['hospitalName']  // 项目名称
         })
@@ -268,13 +294,7 @@ export default {
               message: '上传成功',
               type: 'success'
             });
-            // 更改该检查项选中状态
-            let tempraryMessage = deepClone(this.departmentCheckList);
-            tempraryMessage['checkItemList'][this.enterProblemRecordMessage['index']]['checkResult'] = '3';
-            this.changeDepartmentCheckList(tempraryMessage)
-            this.$router.push({
-              path: "/areaPatrolDetails"
-            })
+            this.codeDepartmentNoFinsh(this.departmentCheckList.depId,'加载中')
           } else {
             this.$toast({
               message: `${res.data.msg}`,
@@ -355,7 +375,7 @@ export default {
         }).then((res) => {
           this.imgOnlinePathArr.push(`${aliyunServerURL}/${aliyunFileKey}`);
           resolve();
-          console.log(this.imgOnlinePathArr);
+          console.log('当前图片',this.imgOnlinePathArr);
         })
         .catch((err) => {
           reject()
@@ -429,6 +449,45 @@ export default {
       };
     },
 
+    // 任务未完成扫码(此处调用是为了更新检查项信息)
+    codeDepartmentNoFinsh (depId,text) {
+      this.loadingShow = true;
+      this.overlayShow = true;
+      this.loadText = text;
+      departmentScanCode({
+        taskId: this.patrolTaskListMessage.id, //当前任务id
+        depId, // 当前扫描科室id
+        workerId: this.userInfo.id // 当前登陆员工id
+      }).then((res) => {
+        if (res && res.data.code == 200) {
+          this.loadingShow = false;
+          this.overlayShow = false;
+          let temporaryMessage = deepClone(this.departmentCheckList);
+          temporaryMessage['depId'] = depId;
+          temporaryMessage['checkItemList'] = res.data.data;
+          temporaryMessage['checkItemList'].forEach(item => {
+            item['checkResult'] = item['checkResult'].toString()
+          });
+          temporaryMessage['checkItemList'][this.enterProblemRecordMessage['index']]['checkResult'] = '3';
+          this.changeDepartmentCheckList(temporaryMessage);
+          this.$router.push({path: '/areaPatrolDetails'})
+        } else {
+          this.$toast({
+            type: 'fail',
+            message: res.data.msg
+          })
+        }
+      })
+      .catch((err) => {
+        this.loadingShow = false;
+        this.overlayShow = false;
+        this.$toast({
+          type: 'fail',
+          message: err
+        })
+      })
+    },
+
     // 拍照点击
     issueClickEvent () {
       this.photoBox = true;
@@ -436,15 +495,21 @@ export default {
     },
 
     // 拍照照片删除
-    issueDelete (index) {
+    issueDelete (index,item) {
       this.deleteInfoDialogShow = true;
-      this.imgIndex = index
+      this.imgIndex = index;
+      this.imgDeleteUrl = item
     },
 
     // 确定删除提示框确定事件
     sureDeleteEvent () {
+      this.imgDeleteUrlArr.push(this.imgDeleteUrl);
       this.problemPicturesList.splice(this.imgIndex, 1);
-      this.temporaryFileArray.splice(this.imgIndex, 1)
+      this.temporaryFileArray.splice(this.imgIndex, 1);
+      for (let item of this.imgDeleteUrlArr) {
+        this.existOnlineImgPath.splice(this.existOnlineImgPath.indexOf(item),1)
+      };
+      console.log('sas1',this.problemPicturesList,this.existOnlineImgPath);
     },
 
     // 拍照取消

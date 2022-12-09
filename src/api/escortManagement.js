@@ -25,6 +25,15 @@ export function departmentScanCode(data) {
 	})
 }
 
+// 已完成任务点击科室扫描二维码
+export function departmentScanCodeFinsh(data) {
+	return request({
+	    url: 'nblink/patrol/checkTask/app/for/finish',
+	    method: 'gett',
+        params: data
+	})
+}
+
 // 检查项通过
 export function checkItemPass(data) {
 	return request({

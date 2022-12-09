@@ -16,7 +16,7 @@
                 <span>当前区域: {{ patrolTaskListMessage.needSpaces.filter((item)=> { return item.id == departmentCheckList['depId'] })[0]['name'] }}</span>
             </div>
             <div class="patrol-item-box">
-                <div class="patrol-item-list" v-for="(item, index) in departmentCheckList.checkItemList" :key="index">
+                <div class="patrol-item-list" v-for="(item, index) in checkItemMessage.checkItemList" :key="index">
                     <div class="patrol-item-list-left">
                         <span>{{ index + 1}}</span>
                         <span>{{ item.name }}</span>
@@ -40,7 +40,7 @@
             </div>
         </div>
     </div>
-    <div class="task-operation-box" v-show="departmentCheckList.checkItemList.length > 0">
+    <div class="task-operation-box" v-show="departmentCheckList.checkItemList.length > 0 && patrolTaskListMessage.state != 4">
       <div class="task-complete" v-preventReClick="[sureEvent]">确 认</div>
     </div>
   </div>
@@ -63,6 +63,7 @@ export default {
       radioValue: 1,
       loadingShow: false,
       loadText: '加载中',
+      checkItemMessage: "",
       statusBackgroundPng: require("@/common/images/home/status-background.png"),
       checkCheckboxPng: require("@/common/images/home/check-checkbox-circle.png"),
       checkboxPng: require("@/common/images/home/checkbox-circle.png"),
@@ -81,6 +82,8 @@ export default {
         message: '该科室不存在巡查项!'
       });
       setTimeout(() =>{ this.$router.push({path: '/workOrderDetails'}) },2000)
+    } else {
+      this.checkItemMessage = deepClone(this.departmentCheckList)
     }
   },
 
@@ -154,6 +157,21 @@ export default {
 
     // 不通过事件
     noPassEvent (event,item,index) {
+      // 已完成的任务且该检查项最终结果选为×,点击后直接进入检查项详情
+      if (this.patrolTaskListMessage.state == 4 && this.departmentCheckList['checkItemList'][index]['checkResult'] == 3) {
+        //保存进入问题记录页的相关信息
+        let temporaryInfo = this.enterProblemRecordMessage;
+        temporaryInfo['isAllowOperation'] = true;
+        temporaryInfo['enterProblemRecordPageSource'] = '/areaPatrolDetails';
+        temporaryInfo['issueInfo'] = item;
+        temporaryInfo['index'] = index; 
+        this.changeEnterProblemRecordMessage(temporaryInfo);
+        this.$router.push({path: '/problemRecord'})
+        return
+      };
+      if (this.patrolTaskListMessage.state == 4 && this.departmentCheckList['checkItemList'][index]['checkResult'] == 1) {
+        return
+      };
       this.loadingShow = true;
       this.overlayShow = true;
       this.loadText = '提交中';
@@ -170,6 +188,7 @@ export default {
           temporaryInfo['isAllowOperation'] = true;
           temporaryInfo['enterProblemRecordPageSource'] = '/areaPatrolDetails';
           temporaryInfo['issueInfo'] = item;
+          temporaryInfo['id'] = res.data.data ? res.data.data.id : null;
           temporaryInfo['index'] = index; 
           this.changeEnterProblemRecordMessage(temporaryInfo);
           this.$router.push({path: '/problemRecord'})
@@ -192,6 +211,13 @@ export default {
 
     // 确认事件
     sureEvent () {
+      if (this.departmentCheckList.checkItemList.some((item) => { return item.checkResult == 0})) {
+        this.$toast({
+          type: 'fail',
+          message: '请完成所有检查项'
+        })
+        return
+      };
       this.loadingShow = true;
       this.overlayShow = true;
       this.loadText = '提交中';
@@ -200,6 +226,7 @@ export default {
         depId: this.departmentCheckList.depId
       }).then((res) => {
         if (res && res.data.code == 200) {
+          this.$router.push({path: '/workOrderDetails'});
           this.loadingShow = false;
           this.overlayShow = false;
           this.$toast({

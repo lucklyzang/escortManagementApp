@@ -139,11 +139,21 @@ export default {
     this.deviceReturn('/home');
     this.$nextTick(()=> {
         this.initScrollChange()
-    });
-    if (this.taskType.taskTypeName) {
-        this.activeName = this.taskType.taskTypeName
-    };
-    this.queryTaskList(this.taskType.taskTypeName ? this.taskType.taskTypeName == 'backlogTask' ? 1 : 4 : 1)
+    })
+  },
+
+  beforeRouteEnter(to, from, next) {
+    next(vm=>{
+      if (from.path == '/home') {
+        vm.queryTaskList(1)
+      } else {
+        if (vm.taskType.taskTypeName) {
+            vm.activeName = vm.taskType.taskTypeName
+        };
+        vm.queryTaskList(vm.taskType.taskTypeName ? vm.taskType.taskTypeName == 'backlogTask' ? 1 : 4 : 1)
+      }
+	});
+    next() 
   },
 
   watch: {},
@@ -227,7 +237,7 @@ export default {
             this.overlayShow = false;
         if (res && res.data.code == 200) {
             if (value == 1) {
-                this.backlogTaskList = res.data.data.filter((item) => { return item.state == value || item.state == 2 || item.state ==3 });
+                this.backlogTaskList = res.data.data.filter((item) => { return item.state == value || item.state == 2 || item.state == 3 });
                 if (this.backlogTaskList.length == 0) {
                     this.backlogEmptyShow = true
                 }

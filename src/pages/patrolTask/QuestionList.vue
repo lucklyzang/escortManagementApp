@@ -128,20 +128,30 @@ export default {
 
   mounted() {
     // 控制设备物理返回按键
-    this.deviceReturn("/workOrderDetails");
-    if (this.taskOrderType.taskTypeName) {
-        this.activeName = this.taskOrderType.taskTypeName;
-        if (this.activeName == 'currentTask') {
-            this.queryCurrentTaskProblemWorkerOrder(this.patrolTaskListMessage.id)
+    this.deviceReturn("/workOrderDetails")
+  },
+
+  beforeRouteEnter(to, from, next) {
+    next(vm=>{
+      if (from.path == '/workOrderDetails') {
+        vm.queryCurrentTaskProblemWorkerOrder(vm.patrolTaskListMessage.id)
+      } else {
+        if (vm.taskOrderType.taskTypeName) {
+            vm.activeName = vm.taskOrderType.taskTypeName;
+            if (vm.activeName == 'currentTask') {
+                vm.queryCurrentTaskProblemWorkerOrder(vm.patrolTaskListMessage.id)
+            } else {
+                vm.queryAllTaskProblemWorkerOrder({
+                    proId: vm.userInfo.hospitalList[0]['hospitalId'], // 项目id
+                    workerId: vm.userInfo.id
+                })  
+            }
         } else {
-            this.queryAllTaskProblemWorkerOrder({
-                proId: this.userInfo.hospitalList[0]['hospitalId'], // 项目id
-                workerId: this.userInfo.id
-            })  
+            vm.queryCurrentTaskProblemWorkerOrder(vm.patrolTaskListMessage.id)
         }
-    } else {
-        this.queryCurrentTaskProblemWorkerOrder(this.patrolTaskListMessage.id)
-    }
+      }
+	});
+    next() 
   },
 
   watch: {},
