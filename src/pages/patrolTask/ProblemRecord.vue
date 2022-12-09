@@ -106,7 +106,7 @@
 import NavBar from "@/components/NavBar";
 import { mapGetters, mapMutations } from "vuex";
 import {mixinsDeviceReturn} from '@/mixins/deviceReturnFunction';
-import { compress, deepClone } from "@/common/js/utils";
+import { compress, deepClone, base64ImgtoFile } from "@/common/js/utils";
 import { problemWorkOrderUpload, getTaskProblemWorkerOrderDetails,departmentScanCode } from '@/api/escortManagement.js'
 import {getAliyunSign} from '@/api/login.js'
 import axios from 'axios'
@@ -137,8 +137,7 @@ export default {
       imgOnlinePathArr: [],
       imgBoxShow: false,
       isExpire: false,
-      currentImgUrl: '',
-      temporaryFileArray: []
+      currentImgUrl: ''
     }
   },
 
@@ -235,7 +234,7 @@ export default {
     // 任务完成事件
     async sureEvent () {
       if (this.problemPicturesList.length == 0) {
-        this.$toast('结果图片不能为空');
+        this.$toast('问题图片不能为空');
         return
       };
       if (!this.problemDescription) {
@@ -251,11 +250,13 @@ export default {
         return
       };
       // 上传图片到阿里云服务器
-      if (this.problemPicturesList.length > 0) {
+      let temporaryProblemPicturesList = this.problemPicturesList.filter((item) => { return item.indexOf('https://') == -1});
+      console.log('过滤后',temporaryProblemPicturesList);
+      if (temporaryProblemPicturesList.length > 0) {
         this.loadText ='提交中';
         this.overlayShow = true;
         this.loadingShow = true;
-        for (let imgI of this.temporaryFileArray) {
+        for (let imgI of temporaryProblemPicturesList) {
           if (Object.keys(this.timeMessage).length > 0) {
             // 判断签名信息是否过期
             if (new Date().getTime()/1000 - this.timeMessage['expire']  >= -30) {
@@ -283,6 +284,48 @@ export default {
           createId: this.userInfo.id, //当前登陆员工id
           createName: this.userInfo.name, //当前登陆员工姓名
           imgPaths: this.imgOnlinePathArr.concat(this.existOnlineImgPath), //上传的问题图片路径集合(合并回显已上传到阿里云的图片地址)
+          proId: this.userInfo.hospitalList[0]['hospitalId'], // 项目id
+          proName: this.userInfo.hospitalList[0]['hospitalName']  // 项目名称
+        })
+        .then((res) => {
+          this.overlayShow = false;
+          this.loadingShow = false;
+          if (res && res.data.code == 200) {
+              this.$toast({
+              message: '上传成功',
+              type: 'success'
+            });
+            this.codeDepartmentNoFinsh(this.departmentCheckList.depId,'加载中')
+          } else {
+            this.$toast({
+              message: `${res.data.msg}`,
+              type: 'fail'
+            })
+          }
+        })
+        .catch((err) => {
+          this.overlayShow = false;
+          this.loadingShow = false;
+          this.$toast({
+            message: `${err}`,
+            type: 'fail'
+          })
+        })
+      } else {
+        // 上传问题工单(此时没有需要上传到阿里云的图片)
+        problemWorkOrderUpload({
+          resultId: this.enterProblemRecordMessage['issueInfo']['resultId'], // 检查项对应结果集id
+          describe: this.problemDescription, // 描述信息
+          remark: this.note, // 备注信息
+          workerId: this.userInfo.id, //当前登陆员工id
+          workerName: this.userInfo.name, //当前登陆员工姓名
+          reportMan: this.userInfo.name, //当前登陆员工姓名
+          depId: this.departmentCheckList.depId, // 当前科室id
+          depName: "敬佩是", // 当前科室名称
+          id: this.enterProblemRecordMessage.id ? this.enterProblemRecordMessage.id : null,
+          createId: this.userInfo.id, //当前登陆员工id
+          createName: this.userInfo.name, //当前登陆员工姓名
+          imgPaths: this.existOnlineImgPath, //仅回显已上传到阿里云的图片地址
           proId: this.userInfo.hospitalList[0]['hospitalId'], // 项目id
           proName: this.userInfo.hospitalList[0]['hospitalName']  // 项目名称
         })
@@ -353,7 +396,7 @@ export default {
         // OSS地址
         const aliyunServerURL = this.ossMessage.host;
         // 存储路径(后台固定位置+随即数+文件格式)
-        const aliyunFileKey = this.ossMessage.dir + new Date().getTime() + Math.floor(Math.random() * 100) + filePath.name;
+        const aliyunFileKey = this.ossMessage.dir + new Date().getTime() + Math.floor(Math.random() * 100) + base64ImgtoFile(filePath).name;
         // 临时AccessKeyID0
         const OSSAccessKeyId = this.ossMessage.accessId;
         // 加密策略
@@ -366,7 +409,7 @@ export default {
         formData.append('OSSAccessKeyId',OSSAccessKeyId);
         formData.append('success_action_status','200');
         formData.append('Signature',signature);
-        formData.append('file',filePath);
+        formData.append('file',base64ImgtoFile(filePath));
         axios({
           url: aliyunServerURL,
           method: 'post',
@@ -407,7 +450,6 @@ export default {
         img.onload = function () {
           let src = compress(img);
           _this.problemPicturesList.push(src);
-          _this.temporaryFileArray.push(file);
           _this.photoBox = false;
           _this.overlayShow = false
         }
@@ -439,7 +481,6 @@ export default {
         img.onload = function () {
           let src = compress(img);
           _this.problemPicturesList.push(src);
-          _this.temporaryFileArray.push(file);
           _this.photoBox = false;
           _this.overlayShow = false
         }
@@ -505,9 +546,11 @@ export default {
     sureDeleteEvent () {
       this.imgDeleteUrlArr.push(this.imgDeleteUrl);
       this.problemPicturesList.splice(this.imgIndex, 1);
-      this.temporaryFileArray.splice(this.imgIndex, 1);
       for (let item of this.imgDeleteUrlArr) {
-        this.existOnlineImgPath.splice(this.existOnlineImgPath.indexOf(item),1)
+        let temporaryIndex = this.existOnlineImgPath.indexOf(item);
+        if (temporaryIndex > -1) {
+          this.existOnlineImgPath.splice(this.existOnlineImgPath.indexOf(item),1)
+        }
       };
       console.log('sas1',this.problemPicturesList,this.existOnlineImgPath);
     },
