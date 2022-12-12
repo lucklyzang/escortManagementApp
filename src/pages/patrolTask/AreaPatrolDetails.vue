@@ -259,6 +259,9 @@ export default {
 .page-box {
   height: 0;
   .content-wrapper();
+  /deep/ .van-overlay {
+    z-index: 1000 !important
+  };
   .nav {
     position: fixed;
     width: 100%;

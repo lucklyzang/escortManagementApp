@@ -29,7 +29,7 @@ export function departmentScanCode(data) {
 export function departmentScanCodeFinsh(data) {
 	return request({
 	    url: 'nblink/patrol/checkTask/app/for/finish',
-	    method: 'gett',
+	    method: 'get',
         params: data
 	})
 }

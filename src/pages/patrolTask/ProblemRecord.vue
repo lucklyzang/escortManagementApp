@@ -151,18 +151,33 @@ export default {
   // },
 
   mounted() {
-    console.log('何解析',this.enterProblemRecordMessage);
+    console.log('何解析',this.patrolTaskListMessage.needSpaces,this.departmentCheckList);
     // 控制设备物理返回按键
     this.deviceReturn(`${this.enterProblemRecordMessage['enterProblemRecordPageSource']}`);
     // 查询工单详情
     // 上报问题工单后才存在reportId
-    if (this.enterProblemRecordMessage['issueInfo'] && this.enterProblemRecordMessage['issueInfo'].hasOwnProperty('reportId') && this.enterProblemRecordMessage['issueInfo']['reportId']) {
-      this.queryTaskProblemWorkerOrderDetails({
-        resultId: !this.enterProblemRecordMessage['isAllowOperation'] ? this.enterProblemRecordMessage['orderMessage']['resultId'] : this.enterProblemRecordMessage['issueInfo']['resultId'], // 结果id
-        reportId: !this.enterProblemRecordMessage['isAllowOperation'] ? this.enterProblemRecordMessage['orderMessage']['reportId'] : this.enterProblemRecordMessage['issueInfo']['reportId'] // 问题工单id
-      })
-    } else {
-      this.echoWorkOrderMessage()
+    if (this.enterProblemRecordMessage['isAllowOperation']) {
+      if (this.enterProblemRecordMessage['issueInfo'] && this.enterProblemRecordMessage['issueInfo'].hasOwnProperty('reportId') && this.enterProblemRecordMessage['issueInfo']['reportId']) {
+        this.queryTaskProblemWorkerOrderDetails({
+          resultId: this.enterProblemRecordMessage['issueInfo']['resultId'], // 结果id
+          reportId: this.enterProblemRecordMessage['issueInfo']['reportId'] // 问题工单id
+        })
+      } else {
+        this.createTime = this.patrolTaskListMessage['createTime'];
+        this.checkItemName = this.enterProblemRecordMessage['issueInfo']['name'];
+        this.spaceName = this.patrolTaskListMessage.needSpaces.filter((item)=> { return item.id == this.departmentCheckList['depId'] })[0]['name'];
+      }
+    } else if (!this.enterProblemRecordMessage['isAllowOperation']) {
+      if (this.enterProblemRecordMessage['orderMessage'] && this.enterProblemRecordMessage['orderMessage'].hasOwnProperty('reportId') && this.enterProblemRecordMessage['orderMessage']['reportId']) {
+        this.queryTaskProblemWorkerOrderDetails({
+          resultId: this.enterProblemRecordMessage['orderMessage']['resultId'], // 结果id
+          reportId: this.enterProblemRecordMessage['orderMessage']['reportId'] // 问题工单id
+        })
+      } else {
+        this.createTime = this.patrolTaskListMessage['createTime'];
+        this.checkItemName = this.enterProblemRecordMessage['orderMessage']['itemName'];
+        this.spaceName = this.enterProblemRecordMessage['orderMessage']['spaceName']
+      }
     }
   },
 
@@ -184,18 +199,6 @@ export default {
     enlareEvent (item) {
       this.currentImgUrl = item;
       this.imgBoxShow = true
-    },
-
-    // 回显工单信息
-    echoWorkOrderMessage () {
-      if (this.enterProblemRecordMessage['isAllowOperation']) {
-        this.checkItemName = this.enterProblemRecordMessage['issueInfo']['name'];
-        this.spaceName = this.patrolTaskListMessage.needSpaces.filter((item)=> { return item.id == this.departmentCheckList['depId'] })[0]['name']
-      } else {
-        this.checkItemName = this.enterProblemRecordMessage['orderMessage']['itemName'];
-        this.spaceName = this.enterProblemRecordMessage['orderMessage']['spaceName']
-      };
-      this.createTime = this.patrolTaskListMessage['createTime']
     },
 
     // 查询问题工单详情
@@ -693,6 +696,7 @@ export default {
     display: flex;
     flex-direction: column;
     position: relative;
+    height: 0;
     .content-top-area {
       width: 100%;
       margin: 0 auto;
@@ -817,6 +821,7 @@ export default {
             box-sizing: border-box;
             display: flex;
             background: #fff;
+            height: auto;
             justify-content: space-between;
             >div {
                 font-size: 14px;
@@ -829,6 +834,7 @@ export default {
                     flex: 1;
                     flex-wrap: wrap;
                     display: flex;
+                    height: auto;
                     >div {
                         width: 31%;
                         height: 90px;

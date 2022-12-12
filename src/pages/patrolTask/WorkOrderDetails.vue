@@ -70,7 +70,7 @@ export default {
   mounted() {
     console.log('大飒飒',this.patrolTaskListMessage);
     // 控制设备物理返回按键
-    this.deviceReturn("/workOrderDetails");
+    this.deviceReturn("/patrolTasklist");
     // 获取任务详情
     this.queryTaskDetails();
     // 二维码回调方法绑定到window下面,提供给外部调用
@@ -99,9 +99,10 @@ export default {
 
     // 巡查地点点击事件
     patrolSiteEvent (item) {
-      // if (this.patrolTaskListMessage.hasArray.indexOf(item.name) == -1) {
-      //   return
-      // };
+      // 为完成扫码校验的科室不允许点击进入
+      if (this.patrolTaskListMessage.hasArray.indexOf(item.name) == -1) {
+        return
+      };
      // 任务已完成
       if (this.patrolTaskListMessage.state == 4) {
         this.codeDepartmentFinsh(item.id,'加载中')
