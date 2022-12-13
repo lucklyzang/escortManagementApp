@@ -99,7 +99,7 @@ export default {
 
     // 巡查地点点击事件
     patrolSiteEvent (item) {
-      // 为完成扫码校验的科室不允许点击进入
+      // 未完成扫码校验的科室不允许点击进入
       if (this.patrolTaskListMessage.hasArray.indexOf(item.name) == -1) {
         return
       };

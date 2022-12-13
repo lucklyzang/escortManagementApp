@@ -20,7 +20,7 @@
                                 <span>{{ item.taskNumber }}</span>
                             </div>
                             <div class="backlog-task-top-right">
-                                <span :class="{'spanNoStartStyle': item.taskState == 1,'spanCompletedStyle': item.taskState == 4}">{{ taskStatusTransition(patrolTaskListMessage.state) }}</span>
+                                <span :class="{'spanNoStartStyle': item.taskState == 1,'spanCompletedStyle': item.taskState == 4}">{{ taskStatusTransition(item.taskState) }}</span>
                             </div>
                         </div>
                         <div class="backlog-task-content">
@@ -63,7 +63,7 @@
                                 <span>{{ item.taskNumber }}</span>
                             </div>
                             <div class="backlog-task-top-right">
-                                <span :class="{'spanNoStartStyle': item.taskState == 1,'spanCompletedStyle': item.taskState == 4}">{{ taskStatusTransition(patrolTaskListMessage.state) }}</span>
+                                <span :class="{'spanNoStartStyle': item.taskState == 1,'spanCompletedStyle': item.taskState == 4}">{{ taskStatusTransition(item.taskState) }}</span>
                             </div>
                         </div>
                         <div class="backlog-task-content">

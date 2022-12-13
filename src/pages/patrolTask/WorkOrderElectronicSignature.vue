@@ -198,6 +198,12 @@ export default {
 .page-box {
   .content-wrapper();
   height: 0;
+  .van-overlay {
+    z-index: 1000 !important
+  };
+  .van-loading {
+    z-index: 10000 !important
+  };
   .nav {
     width: 100%;
     /deep/ .van-nav-bar {

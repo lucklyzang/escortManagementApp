@@ -696,7 +696,6 @@ export default {
     display: flex;
     flex-direction: column;
     position: relative;
-    height: 0;
     .content-top-area {
       width: 100%;
       margin: 0 auto;
@@ -710,12 +709,9 @@ export default {
       }
     };
     .content-box {
-        flex: 1;
         margin-top: 50px;
         box-sizing: border-box;
         background: #F7F7F7;
-        display: flex;
-        flex-direction: column;
         position: absolute;
         top: 0;
         left: 0;
@@ -821,7 +817,6 @@ export default {
             box-sizing: border-box;
             display: flex;
             background: #fff;
-            height: auto;
             justify-content: space-between;
             >div {
                 font-size: 14px;
@@ -834,7 +829,6 @@ export default {
                     flex: 1;
                     flex-wrap: wrap;
                     display: flex;
-                    height: auto;
                     >div {
                         width: 31%;
                         height: 90px;
