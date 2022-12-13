@@ -376,16 +376,20 @@ export default {
             this.isExpire = false;
             resolve()
           } else {
+            this.overlayShow = false;
+            this.loadingShow = false;
             this.$toast({
-              message: `${res.data.data.msg}`,
+              message: `${res.data.msg}`,
               type: 'fail'
             });
             reject()
           }
         })
         .catch((err) => {
+          this.overlayShow = false;
+          this.loadingShow = false;
           this.$toast({
-            message: `${res.data.data.msg}`,
+            message: `${err}`,
             type: 'fail'
           });
           reject()
@@ -401,7 +405,7 @@ export default {
         // 存储路径(后台固定位置+随即数+文件格式)
         const aliyunFileKey = this.ossMessage.dir + new Date().getTime() + Math.floor(Math.random() * 100) + base64ImgtoFile(filePath).name;
         // 临时AccessKeyID0
-        const OSSAccessKeyId = this.ossMessage.accessId;
+        const OSSAccessKeyId = this.ossMessage.accessid;
         // 加密策略
         const policy = this.ossMessage.policy;
         // 签名
@@ -424,6 +428,12 @@ export default {
           console.log('当前图片',this.imgOnlinePathArr);
         })
         .catch((err) => {
+          this.overlayShow = false;
+          this.loadingShow = false;
+          this.$toast({
+            message: `${err}`,
+            type: 'fail'
+          });
           reject()
         })
       })

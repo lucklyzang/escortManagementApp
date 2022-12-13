@@ -19,7 +19,7 @@ export function logIn(data) {
 // 获取阿里云签名接口
 export function getAliyunSign() {
 	return request({
-	    url: 'clean/oss/getSign',
+	    url: 'nblink/patrol/oss/getSign',
 	    method: 'get'
 	})
 }
