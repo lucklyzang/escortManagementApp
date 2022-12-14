@@ -137,9 +137,9 @@ export default {
   mounted() {
     // 控制设备物理返回按键
     this.deviceReturn('/home');
-    this.$nextTick(()=> {
-        this.initScrollChange()
-    })
+    // this.$nextTick(()=> {
+    //     this.initScrollChange()
+    // })
   },
 
   beforeRouteEnter(to, from, next) {
