@@ -137,9 +137,16 @@ export default {
   mounted() {
     // 控制设备物理返回按键
     this.deviceReturn('/home');
-    // this.$nextTick(()=> {
-    //     this.initScrollChange()
-    // })
+    this.$nextTick(()=> {
+        try {
+            this.initScrollChange()
+        } catch (error) {
+            this.$toast({
+                type: 'fail',
+                message: error
+            })
+        }
+    })
   },
 
   beforeRouteEnter(to, from, next) {
