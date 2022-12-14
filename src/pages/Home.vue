@@ -136,6 +136,9 @@
                 }
                 .content-top-content {
                     width: 95%;
+                    padding: 20px 0;
+                    box-sizing: border-box;
+                    overflow: auto;
                     position: absolute;
                     left: 50%;
                     transform: translateX(-50%);
@@ -177,7 +180,8 @@
                             word-break: break-all;
                             font-size: 14px;
                             margin-top: 20px;
-                            color: #BEC7D1
+                            color: #BEC7D1;
+                            line-height: 20px
                         }
                     }
                 }
