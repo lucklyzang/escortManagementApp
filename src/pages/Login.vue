@@ -40,7 +40,7 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import {logIn} from '@/api/login.js'
+import {logIn, getHospitalMessage} from '@/api/login.js'
 import { IsPC, setStore,  getStore, removeStore} from "@/common/js/utils";
 import qs from 'qs'
 export default {
@@ -82,7 +82,7 @@ export default {
   },
 
   methods: {
-    ...mapMutations(["storeUserInfo","changeIsLogin","changePermissionInfo","changeRoleNameList","changeOverDueWay"]),
+    ...mapMutations(["storeUserInfo","changeIsLogin","changePermissionInfo","changeRoleNameList","changeOverDueWay","changeHospitalMessage"]),
 
     // 登录事件
     loginEvent () {
@@ -120,7 +120,7 @@ export default {
               })
             }
           };
-          this.$router.push({ path: "/home" })
+          this.queryHospitalMessage(this.userInfo.proIds[0])  
         } else {
           this.$toast({
             type: 'fail',
@@ -136,7 +136,34 @@ export default {
           message: err
         })
       })
-    }  
+    },
+    
+    // 查询医院信息
+    queryHospitalMessage (ProId) {
+      this.loadingShow = true;
+      this.overlayShow = true;
+      getHospitalMessage(ProId).then((res) => {
+        this.loadingShow = false;
+        this.overlayShow = false;
+        if (res && res.data.code == 200) {
+          this.changeHospitalMessage(res.data.data);
+          this.$router.push({ path: "/home" })
+        } else {
+          this.$toast({
+            type: 'fail',
+            message: res.msg
+          })
+        }
+      })
+      .catch((err) => {
+        this.loadingShow = false;
+        this.overlayShow = false;
+         this.$toast({
+          type: 'fail',
+          message: err
+        })
+      })
+    }
   }
 }
 </script>

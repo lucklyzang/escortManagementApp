@@ -9,6 +9,10 @@ export default {
             return state.userInfo
         },
 
+        hospitalMessage: (state) => {
+            return state.hospitalMessage
+        },
+
         token: (state) => {
             state.token = getStore('token') ? getStore('token') : null;
             return state.token
@@ -59,6 +63,11 @@ export default {
                 setStore('userInfo', playLoad);
                 state.userInfo = playLoad
             }
+        },
+
+        // 保存医院信息
+        changeHospitalMessage (state, playLoad) {
+            state.hospitalMessage = playLoad
         },
 
         // 保存token

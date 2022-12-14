@@ -16,6 +16,15 @@ export function logIn(data) {
 	})
 }
 
+
+// 查询医院信息
+export function getHospitalMessage(proId) {
+	return request({
+	    url: `nblink/hospital/hospitalAreaQueryById/${proId}`,
+	    method: 'get'
+	})
+}
+
 // 获取阿里云签名接口
 export function getAliyunSign() {
 	return request({
