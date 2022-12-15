@@ -128,17 +128,21 @@ export default {
             this.isExpire = false;
             resolve()
           } else {
+            this.overlayShow = false;
+            this.loadingShow = false;
             this.$toast({
-                message: `${res.data.data.msg}`,
-                type: 'fail'
+              message: `${res.data.msg}`,
+              type: 'fail'
             });
             reject()
           }
         })
         .catch((err) => {
+          this.overlayShow = false;
+          this.loadingShow = false;
           this.$toast({
-              message: `${res.data.data.msg}`,
-              type: 'fail'
+            message: `${err}`,
+            type: 'fail'
           });
           reject()
         })
@@ -153,7 +157,7 @@ export default {
       // 存储路径(后台固定位置+随即数+文件格式)
       const aliyunFileKey = this.ossMessage.dir + new Date().getTime() + Math.floor(Math.random() * 100) + base64ImgtoFile(filePath).name;
       // 临时AccessKeyID0
-      const OSSAccessKeyId = this.ossMessage.accessId;
+      const OSSAccessKeyId = this.ossMessage.accessid;
       // 加密策略
       const policy = this.ossMessage.policy;
       // 签名
@@ -176,17 +180,23 @@ export default {
           console.log(this.imgOnlinePathArr);
       })
       .catch((err) => {
-          reject()
+        this.overlayShow = false;
+        this.loadingShow = false;
+        this.$toast({
+          message: `${err}`,
+          type: 'fail'
+        });
+        reject()
       })
       })
     },
 
     // 签名取消
     cancel () {
-        this.$refs.mychild.overwrite();
-        this.$router.push({
-          path: "/workOrderDetails"
-        })
+      this.$refs.mychild.overwrite();
+      this.$router.push({
+        path: "/workOrderDetails"
+      })
     },
   }
 };
