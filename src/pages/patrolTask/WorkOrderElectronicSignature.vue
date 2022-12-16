@@ -3,7 +3,7 @@
     <van-loading size="35px" vertical color="#e6e6e6" v-show="loadingShow">{{ loadText }}</van-loading>
     <van-overlay :show="overlayShow" />
     <div class="nav">
-        <NavBar path="/workOrderDetails" title="工单完成签名" />
+        <NavBar path="/workOrderDetails" title="工单完成签名" :leftArrow="false" :leftText="null" />
     </div>
     <div class="content">
         <ElectronicSignature ref="mychild"></ElectronicSignature>
@@ -43,7 +43,10 @@ export default {
 
   mounted() {
     // 控制设备物理返回按键
-    this.deviceReturn("/workOrderDetails")
+    this.deviceReturn("/workOrderDetails");
+    // this.$nextTick(()=> {
+    //   this.resizeScreen()
+    // })
   },
 
   watch: {},
@@ -54,6 +57,46 @@ export default {
 
   methods: {
     ...mapMutations(["changeOssMessage","changeTimeMessage"]),
+
+
+    resizeScreen() {
+      const _this = this;
+      // 利用 CSS3 旋转 对根容器逆时针旋转 90 度
+      const detectOrient = function() {
+        console.log('静茹了');
+        let width = document.documentElement.clientWidth,
+        height = document.documentElement.clientHeight,
+        $wrapper = _this.$refs.wrapper, // 页面最外层元素
+          style = "";
+        if (width >= height) {
+          // 横屏
+          style += "width:" + width + "px;"; // 注意旋转后的宽高切换
+          style += "height:" + height + "px;";
+          style += "-webkit-transform: rotate(0); transform: rotate(0);";
+          style += "-webkit-transform-origin: 0 0;";
+          style += "transform-origin: 0 0;";
+        } else {
+          // 竖屏
+          console.log('竖屏了');
+          style += "width:" + height + "px;";
+          style += "height:" + width + "px;";
+          style += "min-height:auto;";
+          style +=
+            "-webkit-transform: rotate(90deg); transform: rotate(90deg);";
+          // 注意旋转中点的处理
+          style +=
+            "-webkit-transform-origin: " +
+            width / 2 +
+            "px " +
+            width / 2 +
+            "px;";
+          style += "transform-origin: " + width / 2 + "px " + width / 2 + "px;";
+        }
+        $wrapper.style.cssText = style;
+      };
+      window.onresize = detectOrient;
+      detectOrient()
+    },
 
     // 签名重写
     rewrite () {
@@ -228,8 +271,10 @@ export default {
             font-size: 22px !important;
         }
         .van-nav-bar__title {
-            color: #101010 !important;
-            font-size: 16px !important;
+          color: #101010 !important;
+          font-size: 16px !important;
+          margin: 0 !important;
+          margin-left: 2% !important
         }
     }
   };
