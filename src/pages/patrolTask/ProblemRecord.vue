@@ -282,7 +282,7 @@ export default {
           workerName: this.userInfo.name, //当前登陆员工姓名
           reportMan: this.userInfo.name, //当前登陆员工姓名
           depId: this.departmentCheckList.depId, // 当前科室id
-          depName: "敬佩是", // 当前科室名称
+          depName: this.patrolTaskListMessage.needSpaces.filter((item)=> { return item.id == this.departmentCheckList['depId'] })[0]['name'], // 当前科室名称
           id: this.enterProblemRecordMessage.id ? this.enterProblemRecordMessage.id : null,
           createId: this.userInfo.id, //当前登陆员工id
           createName: this.userInfo.name, //当前登陆员工姓名
@@ -324,7 +324,7 @@ export default {
           workerName: this.userInfo.name, //当前登陆员工姓名
           reportMan: this.userInfo.name, //当前登陆员工姓名
           depId: this.departmentCheckList.depId, // 当前科室id
-          depName: "敬佩是", // 当前科室名称
+          depName: this.patrolTaskListMessage.needSpaces.filter((item)=> { return item.id == this.departmentCheckList['depId'] })[0]['name'], // 当前科室名称
           id: this.enterProblemRecordMessage.id ? this.enterProblemRecordMessage.id : null,
           createId: this.userInfo.id, //当前登陆员工id
           createName: this.userInfo.name, //当前登陆员工姓名
