@@ -3,7 +3,7 @@
     <van-loading size="35px" vertical color="#e6e6e6" v-show="loadingShow">{{ loadText }}</van-loading>
     <van-overlay :show="overlayShow" />
     <div class="nav">
-        <NavBar path="/workOrderDetails" title="工单完成签名" :leftArrow="false" :leftText="null" />
+      <NavBar path="/workOrderDetails" title="工单完成签名" :leftArrow="false" :leftText="null" />
     </div>
     <div class="content">
         <ElectronicSignature ref="mychild"></ElectronicSignature>
