@@ -122,7 +122,7 @@ export default {
   data() {
     return {
       loadingShow: false,
-      overlayShow: true,
+      overlayShow: false,
       backlogEmptyShow: false,
       completedEmptyShow: false,
       isShowBacklogTaskNoMoreData: false,
