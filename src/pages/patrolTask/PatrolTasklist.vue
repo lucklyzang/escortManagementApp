@@ -3,7 +3,7 @@
     <van-loading size="35px" vertical color="#e6e6e6" v-show="loadingShow">加载中...</van-loading>
     <van-overlay :show="overlayShow" z-index="100000" />
     <div class="nav">
-        <NavBar path="/home" title="巡查任务" />
+        <NavBar path="/home" title="巡更任务" />
     </div>
     <div class="content">
         <div class="content-top-area">
@@ -14,7 +14,7 @@
                 <van-tab title="待办任务" name="backlogTask">
                     <van-empty description="暂无数据" v-show="backlogEmptyShow" />
                     <div class="backlog-task-list-box" ref="scrollBacklogTask" v-show="!backlogEmptyShow">
-                        <div class="backlog-task-list" v-for="(item,index) in backlogTaskList" :key="index">
+                        <div class="backlog-task-list" v-for="(item,index) in fullBacklogTaskList" :key="index">
                             <div class="backlog-task-top">
                                 <div class="backlog-task-top-left">
                                     <span>任务编号</span>
@@ -38,11 +38,11 @@
                                     <span>{{ item.createTime }}</span>
                                 </div>
                                 <div class="complete-patrol-area">
-                                    <span>已完成巡查区域:</span>
+                                    <span>已完成巡更区域:</span>
                                     <span>{{ item.finishSpacesCount }}</span>
                                 </div>
                                 <div class="unfinished-patrol-area">
-                                    <span>未完成巡查区域:</span>
+                                    <span>未完成巡更区域:</span>
                                     <span>{{ item.noFinishSpacesCount }}</span>
                                 </div>
                                 <div class="taskset-number">
@@ -60,7 +60,7 @@
                 <van-tab title="已完成" name="completetedTask">
                     <van-empty description="暂无数据" v-show="completedEmptyShow" />
                     <div class="backlog-task-list-box" ref="scrollCompletetedTask" v-show="!completedEmptyShow">
-                        <div class="backlog-task-list" v-for="(item,index) in completedTaskList" :key="index">
+                        <div class="backlog-task-list" v-for="(item,index) in fullCompletedTaskList" :key="index">
                             <div class="backlog-task-top">
                                 <div class="backlog-task-top-left">
                                     <span>任务编号</span>
@@ -84,11 +84,11 @@
                                     <span>{{ item.createTime }}</span>
                                 </div>
                                 <div class="complete-patrol-area">
-                                    <span>已完成巡查区域:</span>
+                                    <span>已完成巡更区域:</span>
                                     <span>{{ item.finishSpacesCount }}</span>
                                 </div>
                                 <div class="unfinished-patrol-area">
-                                    <span>未完成巡查区域:</span>
+                                    <span>未完成巡更区域:</span>
                                     <span>{{ item.noFinishSpacesCount }}</span>
                                 </div>
                                 <div class="taskset-number">
@@ -124,6 +124,15 @@ export default {
       loadingShow: false,
       overlayShow: false,
       backlogEmptyShow: false,
+      totalCount: '',
+      backlogTaskTimer: 0,
+      completetedTaskTimer: 0,
+      fullBacklogTaskList: [],
+      fullCompletedTaskList: [],
+      timeOne: null,
+      timeTwo: null,
+      currentPage: 1,
+      pageSize: 10,
       completedEmptyShow: false,
       isShowBacklogTaskNoMoreData: false,
       isShowCompletetedTaskNoMoreData: false,
@@ -134,30 +143,44 @@ export default {
     }
   },
 
-  mounted() {
+   mounted() {
     // 控制设备物理返回按键
     this.deviceReturn('/home');
-    this.$nextTick(()=> {
-        try {
-            this.initScrollChange()
-        } catch (error) {
-            this.$toast({
-                type: 'fail',
-                message: error
+    if (this.taskType.taskTypeName) {
+        if (this.taskType.taskTypeName == 'backlogTask') {
+            this.$nextTick(()=> {
+                this.initBacklogTaskScrollChange()
+            })
+        } else {
+            this.$nextTick(()=> {
+                this.initCompletetedTaskScrollChange()
             })
         }
-    })
+    } else {
+        this.$nextTick(()=> {
+            this.initBacklogTaskScrollChange()
+        })
+    }
+  },
+
+  beforeDestroy () {
+    if (this.timeOne) {
+        clearTimeout(this.timeOne)
+    };
+    if (this.timeTwo) {
+        clearTimeout(this.timeTwo)
+    }
   },
 
   beforeRouteEnter(to, from, next) {
     next(vm=>{
       if (from.path == '/home') {
-        vm.queryTaskList(1)
+        vm.queryTaskList(1,vm.currentPage,vm.pageSize)
       } else {
         if (vm.taskType.taskTypeName) {
             vm.activeName = vm.taskType.taskTypeName
         };
-        vm.queryTaskList(vm.taskType.taskTypeName ? vm.taskType.taskTypeName == 'backlogTask' ? 1 : 4 : 1)
+        vm.queryTaskList(vm.taskType.taskTypeName ? vm.taskType.taskTypeName == 'backlogTask' ? 1 : 2 : 1,vm.currentPage,vm.pageSize)
       }
 	});
     next() 
@@ -208,58 +231,96 @@ export default {
         }
     },
 
-    // 元素滚动事件
-    initScrollChange () {
-        // 待办任务列表下拉
-        if (this.activeName == 'backlogTask') {
-            let boxBackScroll = this.$refs['scrollBacklogTask'];
-            boxBackScroll.addEventListener('scroll',(e)=> {
-                if (Math.ceil(e.srcElement.scrollTop) + e.srcElement.offsetHeight >= e.srcElement.scrollHeight) {
-                    console.log('待办滚动了',e.srcElement.scrollTop, e.srcElement.offsetHeight, e.srcElement.scrollHeight)
-                }
-            },true)
-        }
+    // 给待办任务添加滚动事件
+    initBacklogTaskScrollChange () {
+        let boxBackScroll = this.$refs['scrollBacklogTask'];
+        boxBackScroll.addEventListener('scroll',this.backlogTaskLoadingMethods,true)
+    },
 
-        // 完成任务列表下拉
-        if (this.activeName == 'completetedTask') {
-            let boxCompleteteScroll = this.$refs['scrollCompletetedTask'];
-            boxCompleteteScroll.addEventListener('scroll',(e)=> {
-                if (Math.ceil(e.srcElement.scrollTop) + e.srcElement.offsetHeight >= e.srcElement.scrollHeight) {
-                    console.log('完成滚动了',e.srcElement.scrollTop, e.srcElement.offsetHeight, e.srcElement.scrollHeight)
-                }
-            },true)
-        }    
+    // 待办任务加载函数
+    backlogTaskLoadingMethods () {
+        let boxBackScroll = this.$refs['scrollBacklogTask'];
+        if (boxBackScroll.scrollTop == 0) {return};
+        if (Math.ceil(boxBackScroll.scrollTop + boxBackScroll.offsetHeight) >= boxBackScroll.scrollHeight) {
+            if (this.backlogTaskTimer) {return};
+            this.backlogTaskTimer = 1;
+            this.timeOne = setTimeout(() => {
+                let totalPage = Math.ceil(this.totalCount/this.pageSize);
+                if (this.currentPage >= totalPage) {
+                    this.isShowBacklogTaskNoMoreData = true
+                } else {
+                    this.isShowBacklogTaskNoMoreData = false;
+                    this.currentPage = this.currentPage + 1;
+                    this.queryTaskList(1,this.currentPage,this.pageSize);
+                };
+                this.backlogTaskTimer = 0;
+                console.log('待办加载了',boxBackScroll.scrollTop, boxBackScroll.offsetHeight, boxBackScroll.scrollHeight);
+            },300)
+        }     
+    },
+
+    // 给完成任务添加滚动事件
+    initCompletetedTaskScrollChange () {
+        let boxCompleteteScroll = this.$refs['scrollCompletetedTask'];
+        boxCompleteteScroll.addEventListener('scroll',this.completetedTaskLoadingMethods,true)
+    },
+
+    // 完成任务加载函数
+    completetedTaskLoadingMethods () {
+        let boxCompleteteScroll = this.$refs['scrollCompletetedTask'];
+        if (boxCompleteteScroll.scrollTop == 0) {return};
+        if (Math.ceil(boxCompleteteScroll.scrollTop + boxCompleteteScroll.offsetHeight) >= boxCompleteteScroll.scrollHeight) {
+            if (this.completetedTaskTimer) {return};
+            this.completetedTaskTimer = 1;
+            this.timeTwo = setTimeout(() => {
+                let totalPage = Math.ceil(this.totalCount/this.pageSize);
+                if (this.currentPage >= totalPage) {
+                    this.isShowCompletetedTaskNoMoreData = true
+                } else {
+                    this.isShowCompletetedTaskNoMoreData = false;
+                    this.currentPage = this.currentPage + 1;
+                    this.queryTaskList(2,this.currentPage,this.pageSize);
+                };
+                this.completetedTaskTimer = 0;
+                console.log('完成滚动了',boxCompleteteScroll.scrollTop, boxCompleteteScroll.offsetHeight, boxCompleteteScroll.scrollHeight)
+            },300)
+        }
     },
 
     // 获取任务列表
-    queryTaskList (value) {
-        console.log(value);
+    queryTaskList (taskType,page,pageSize) {
         this.loadingShow = true;
         this.overlayShow = true;
         this.backlogEmptyShow = false;
         this.completedEmptyShow = false;
-		getAllTaskList({proId : this.userInfo.proIds[0], workerId: this.userInfo.id})
+        this.isShowBacklogTaskNoMoreData = false;
+        this.isShowCompletetedTaskNoMoreData = false;
+		getAllTaskList({proId : this.userInfo.proIds[0], workerId: this.userInfo.id,taskType,system:4,page,pageSize})
         .then((res) => {
             this.loadingShow = false;
             this.overlayShow = false;
-        if (res && res.data.code == 200) {
-            if (value == 1) {
-                this.backlogTaskList = res.data.data.filter((item) => { return item.state == value || item.state == 2 || item.state == 3 });
-                if (this.backlogTaskList.length == 0) {
-                    this.backlogEmptyShow = true
+            if (res && res.data.code == 200) {
+                if (taskType == 1) {
+                    this.backlogTaskList = res.data.data.list;
+                    this.totalCount = res.data.data.total;
+                    this.fullBacklogTaskList = this.fullBacklogTaskList.concat(this.backlogTaskList);
+                    if (this.fullBacklogTaskList.length == 0) {
+                        this.backlogEmptyShow = true
+                    }
+                } else if (taskType == 2) {
+                    this.completedTaskList = res.data.data.list;
+                    this.totalCount = res.data.data.total;
+                    this.fullCompletedTaskList = this.fullCompletedTaskList.concat(this.completedTaskList);
+                    if (this.fullCompletedTaskList.length == 0) {
+                        this.completedEmptyShow = true
+                    }
                 }
-            } else if (value == 4) {
-                this.completedTaskList = res.data.data.filter((item) => { return item.state == value});
-                if (this.completedTaskList.length == 0) {
-                    this.completedEmptyShow = true
-                }
+            } else {
+            this.$toast({
+                type: 'fail',
+                message: res.data.msg
+            })
             }
-        } else {
-          this.$toast({
-            type: 'fail',
-            message: res.data.msg
-          })
-        }
       })
       .catch((err) => {
         this.loadingShow = false;
@@ -273,17 +334,20 @@ export default {
 
     // tab切换值变化事件
     vanTabsChangeEvent (value) {
-        console.log(this.activeName);
+        this.currentPage = 1;
+        this.pageSize = 10;
+        this.fullBacklogTaskList = [];
+        this.fullCompletedTaskList = [];
         let temporaryText;
         if (value == 'backlogTask') {
             temporaryText = 1;
         } else if (value == 'completetedTask') {
-             temporaryText = 4
+            temporaryText = 2;
+            this.$nextTick(()=> {
+                this.initCompletetedTaskScrollChange()
+            })
         };
-        this.queryTaskList(temporaryText);
-        this.$nextTick(()=> {
-            this.initScrollChange()
-        })
+        this.queryTaskList(temporaryText,this.currentPage,this.pageSize)
     },
 
     // 点击进入任务详情事件
